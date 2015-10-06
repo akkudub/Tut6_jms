@@ -1,0 +1,7 @@
+org.hornetq.api.config
+org.hornetq.api.core
+org.hornetq.api.core.client
+org.hornetq.api.core.client.loadbalance
+org.hornetq.api.core.management
+org.hornetq.spi.core.protocol
+org.hornetq.spi.core.remoting

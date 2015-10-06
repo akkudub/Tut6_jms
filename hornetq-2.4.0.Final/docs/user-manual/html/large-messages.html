@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><title xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory">Chapter 23. Large Messages</title><link rel="stylesheet" href="css/jbossorg.css" type="text/css"/><meta xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" name="generator" content="DocBook XSL Stylesheets V1.74.0"/><meta xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" http-equiv="Content-Type" content="text/html; charset=UTF-8"/><link rel="home" href="index.html" title="HornetQ User Manual"/><link rel="up" href="index.html" title="HornetQ User Manual"/><link rel="prev" href="message-expiry.html" title="Chapter 22. Message Expiry"/><link rel="next" href="paging.html" title="Chapter 24. Paging"/></head><body><p id="title"><a href="http://www.jboss.org" class="site_href"><strong>JBoss.org</strong></a><a href="http://docs.jboss.org/" class="doc_href"><strong>Community Documentation</strong></a></p><ul class="docnav"><li class="previous"><a accesskey="p" href="message-expiry.html"><strong>Prev</strong></a></li><li class="next"><a accesskey="n" href="paging.html"><strong>Next</strong></a></li></ul><div class="chapter" lang="en"><div class="titlepage"><div><div><h2 class="title"><a id="large-messages"/>Chapter 23. Large Messages</h2></div></div></div><div class="toc"><dl><dt><span class="section"><a href="large-messages.html#large.message.configuring">23.1. Configuring the server</a></span></dt><dt><span class="section"><a href="large-messages.html#d0e4867">23.2. Configuring Parameters</a></span></dt><dd><dl><dt><span class="section"><a href="large-messages.html#large-messages.core.config">23.2.1. Using Core API</a></span></dt><dt><span class="section"><a href="large-messages.html#d0e4889">23.2.2. Using JMS</a></span></dt><dt><span class="section"><a href="large-messages.html#d0e4903">23.2.3. Compressed Large Messages</a></span></dt></dl></dd><dt><span class="section"><a href="large-messages.html#d0e4936">23.3. Streaming large messages</a></span></dt><dd><dl><dt><span class="section"><a href="large-messages.html#d0e4968">23.3.1. Streaming over Core API</a></span></dt><dt><span class="section"><a href="large-messages.html#large-messages.streaming.over.jms">23.3.2. Streaming over JMS</a></span></dt></dl></dd><dt><span class="section"><a href="large-messages.html#d0e5069">23.4. Streaming Alternative</a></span></dt><dt><span class="section"><a href="large-messages.html#large-messages.example">23.5. Large message example</a></span></dt></dl></div><p>HornetQ supports sending and receiving of huge messages, even when the client and server
+        are running with limited memory. The only realistic limit to the size of a message that can
+        be sent or consumed is the amount of disk space you have available. We have tested sending
+        and consuming messages up to 8 GiB in size with a client and server running in just 50MiB of
+        RAM!</p><p>To send a large message, the user can set an <code class="literal">InputStream</code> on a message
+        body, and when that message is sent, HornetQ will read the <code class="literal">InputStream</code>. A
+            <code class="literal">FileInputStream</code> could be used for example to send a huge message from
+        a huge file on disk.</p><p>As the <code class="literal">InputStream</code> is read the data is sent to the server as a stream
+        of fragments. The server persists these fragments to disk as it receives them and when the
+        time comes to deliver them to a consumer they are read back of the disk, also in fragments
+        and sent down the wire. When the consumer receives a large message it initially receives
+        just the message with an empty body, it can then set an <code class="literal">OutputStream</code> on
+        the message to stream the huge message body to a file on disk or elsewhere. At no time is
+        the entire message body stored fully in memory, either on the client or the server.</p><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title"><a id="large.message.configuring"/>23.1. Configuring the server</h2></div></div></div><p>Large messages are stored on a disk directory on the server side, as configured on the
+            main configuration file.</p><p>The configuration property <code class="literal">large-messages-directory</code> specifies where
+            large messages are stored.</p><pre xmlns="" xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" class="">
+&lt;configuration xmlns="urn:hornetq"
+   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   xsi:schemaLocation="urn:hornetq /schema/hornetq-configuration.xsd"&gt;
+...
+&lt;large-messages-directory&gt;/data/large-messages&lt;/large-messages-directory&gt;
+...
+&lt;/configuration</pre><p>By default the large message directory is <code class="literal">data/largemessages</code></p><p>For the best performance we recommend large messages directory is stored on a
+            different physical volume to the message journal or paging directory.</p></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title"><a id="d0e4867"/>23.2. Configuring Parameters</h2></div></div></div><p>Any message larger than a certain size is considered a large message. Large messages
+            will be split up and sent in fragments. This is determined by the parameter <code class="literal">min-large-message-size</code></p><p>The default value is 100KiB.</p><div class="section" lang="en"><div class="titlepage"><div><div><h3 class="title"><a id="large-messages.core.config"/>23.2.1. Using Core API</h3></div></div></div><p>If the HornetQ Core API is used, the minimal large message size is specified by
+                    <code class="literal">ServerLocator.setMinLargeMessageSize</code>.</p><pre xmlns="" xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" class="">
+ServerLocator locator = HornetQClient.createServerLocatorWithoutHA(new TransportConfiguration(NettyConnectorFactory.class.getName()))
+
+locator.setMinLargeMessageSize(25 * 1024);
+
+ClientSessionFactory factory = HornetQClient.createClientSessionFactory();</pre><p><a class="xref" href="configuring-transports.html#configuring-transports.client.side" title="16.3. Configuring the transport directly from the client side.">Section 16.3, “Configuring the transport directly from the client side.”</a> will provide more information
+                on how to instantiate the session factory.</p></div><div class="section" lang="en"><div class="titlepage"><div><div><h3 class="title"><a id="d0e4889"/>23.2.2. Using JMS</h3></div></div></div><p>If JNDI is used to look up the connection factory, the minimum large message size
+                is specified in <code class="literal">hornetq-jms.xml</code></p><pre xmlns="" xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" class="">...
+&lt;connection-factory name="ConnectionFactory"&gt;
+   &lt;connectors&gt;
+      &lt;connector-ref connector-name="netty"/&gt;
+   &lt;/connectors&gt;
+   &lt;entries&gt;
+      &lt;entry name="ConnectionFactory"/&gt;
+      &lt;entry name="XAConnectionFactory"/&gt;
+   &lt;/entries&gt;
+
+   &lt;min-large-message-size&gt;250000&lt;/min-large-message-size&gt;
+&lt;/connection-factory&gt;
+...</pre><p>If the connection factory is being instantiated directly, the minimum large
+                message size is specified by <code class="literal">HornetQConnectionFactory.setMinLargeMessageSize</code>.</p></div><div class="section" lang="en"><div class="titlepage"><div><div><h3 class="title"><a id="d0e4903"/>23.2.3. Compressed Large Messages</h3></div></div></div><p>
+				You can choose to send large messages in compressed form using <code class="literal">
+				compress-large-messages</code> attributes.
+            </p><div class="section" lang="en"><div class="titlepage"><div><div><h4 class="title"><a id="d0e4911"/>23.2.3.1. <code class="literal">compress-large-messages</code></h4></div></div></div><p>If you specify the boolean property <code class="literal">compress-large-messages</code> on
+                the <code class="literal">server locator</code> or <code class="literal">ConnectionFactory</code> as true, The
+                system will use the ZIP algorithm to compress the message body as the message is
+                transferred to the server's side. Notice that there's no special treatment at the
+                server's side, all the compressing and uncompressing is done at the client.</p><p>If the compressed size of a large message is below <code class="literal">
+                min-large-message-size</code>, it is sent to server as regular messages. This means
+			    that the message won't be written into the server's large-message
+			    data directory, thus reducing the disk I/O.</p></div><div class="section" lang="en"><div class="titlepage"/><p>If you use JMS, you can achieve large messages compression by configuring your 
+                connection factories. For example,</p><pre xmlns="" xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" class="">...
+&lt;connection-factory name="ConnectionFactory"&gt;
+   &lt;connectors&gt;
+      &lt;connector-ref connector-name="netty"/&gt;
+   &lt;/connectors&gt;
+...
+   &lt;compress-large-messages&gt;true&lt;/compress-large-messages&gt;
+&lt;/connection-factory&gt;
+...</pre></div></div></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title"><a id="d0e4936"/>23.3. Streaming large messages</h2></div></div></div><p>HornetQ supports setting the body of messages using input and output streams (<code class="literal">java.lang.io</code>)</p><p>These streams are then used directly for sending (input streams) and receiving (output
+            streams) messages.</p><p>When receiving messages there are 2 ways to deal with the output stream; you may
+            choose to block while the output stream is recovered using the method <code class="literal">ClientMessage.saveOutputStream</code> or alternatively using the method <code class="literal">ClientMessage.setOutputstream</code> which will asynchronously write the message
+            to the stream. If you choose the latter the consumer must be kept alive until the
+            message has been fully received.</p><p>You can use any kind of stream you like. The most common use case is to send files
+            stored in your disk, but you could also send things like JDBC Blobs, <code class="literal">SocketInputStream</code>, things you recovered from <code class="literal">HTTPRequests</code> etc. Anything as long as it implements <code class="literal">java.io.InputStream</code> for sending messages or <code class="literal">java.io.OutputStream</code> for receiving them.</p><div class="section" lang="en"><div class="titlepage"><div><div><h3 class="title"><a id="d0e4968"/>23.3.1. Streaming over Core API</h3></div></div></div><p>The following table shows a list of methods available at <code class="literal">ClientMessage</code> which are also available through JMS by the use of
+                object properties.</p><div class="table"><a id="large-messages.ClientMessageAPI"/><p class="title"><b>Table 23.1. org.hornetq.api.core.client.ClientMessage API</b></p><div class="table-contents"><table summary="org.hornetq.api.core.client.ClientMessage API" border="1"><colgroup><col/><col/><col/></colgroup><thead><tr><th>Name</th><th>Description</th><th>JMS Equivalent Property</th></tr></thead><tbody><tr><td>setBodyInputStream(InputStream)</td><td>Set the InputStream used to read a message body when sending
+                                it.</td><td>JMS_HQ_InputStream</td></tr><tr><td>setOutputStream(OutputStream)</td><td>Set the OutputStream that will receive the body of a message.
+                                This method does not block.</td><td>JMS_HQ_OutputStream</td></tr><tr><td>saveOutputStream(OutputStream)</td><td>Save the body of the message to the <code class="literal">OutputStream</code>. It will block until the entire content
+                                is transferred to the <code class="literal">OutputStream</code>.</td><td>JMS_HQ_SaveStream</td></tr></tbody></table></div></div><br class="table-break"/><p>To set the output stream when receiving a core message: </p><pre xmlns="" xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" class="">
+...
+ClientMessage msg = consumer.receive(...);
+
+
+// This will block here until the stream was transferred
+msg.saveOutputStream(someOutputStream); 
+
+ClientMessage msg2 = consumer.receive(...);
+
+// This will not wait the transfer to finish
+msg.setOutputStream(someOtherOutputStream); 
+...</pre><p> Set the input stream when sending a core message: </p><pre xmlns="" xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" class="">
+...
+ClientMessage msg = session.createMessage();
+msg.setInputStream(dataInputStream);
+...</pre><p>Notice also that for messages with more than 2GiB the getBodySize() will return
+                invalid values since this is an integer (which is also exposed to the JMS API). On
+                those cases you can use the message property _HQ_LARGE_SIZE.</p></div><div class="section" lang="en"><div class="titlepage"><div><div><h3 class="title"><a id="large-messages.streaming.over.jms"/>23.3.2. Streaming over JMS</h3></div></div></div><p>When using JMS, HornetQ maps the streaming methods on the core API (see <a class="xref" href="large-messages.html#large-messages.ClientMessageAPI" title="Table 23.1. org.hornetq.api.core.client.ClientMessage API">Table 23.1, “org.hornetq.api.core.client.ClientMessage API”</a>) by setting object properties . You
+                can use the method <code class="literal">Message.setObjectProperty</code> to set the input and
+                output streams.</p><p>The <code class="literal">InputStream</code> can be defined through the JMS Object Property
+                JMS_HQ_InputStream on messages being sent:</p><pre xmlns="" xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" class="">
+BytesMessage message = session.createBytesMessage();
+
+FileInputStream fileInputStream = new FileInputStream(fileInput);
+
+BufferedInputStream bufferedInput = new BufferedInputStream(fileInputStream);
+
+message.setObjectProperty("JMS_HQ_InputStream", bufferedInput);
+
+someProducer.send(message);</pre><p>The <code class="literal">OutputStream</code> can be set through the JMS Object Property
+                JMS_HQ_SaveStream on messages being received in a blocking way.</p><pre xmlns="" xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" class="">
+BytesMessage messageReceived = (BytesMessage)messageConsumer.receive(120000);
+                
+File outputFile = new File("huge_message_received.dat");
+                
+FileOutputStream fileOutputStream = new FileOutputStream(outputFile);
+                
+BufferedOutputStream bufferedOutput = new BufferedOutputStream(fileOutputStream);
+                
+// This will block until the entire content is saved on disk
+messageReceived.setObjectProperty("JMS_HQ_SaveStream", bufferedOutput);</pre><p>Setting the <code class="literal">OutputStream</code> could also be done in a non blocking
+                way using the property JMS_HQ_OutputStream.</p><pre xmlns="" xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" class="">
+// This won't wait the stream to finish. You need to keep the consumer active.
+messageReceived.setObjectProperty("JMS_HQ_OutputStream", bufferedOutput);</pre><div xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" class="note"><h2>Note</h2><p>When using JMS, Streaming large messages are only supported on <code class="literal">StreamMessage</code> and <code class="literal">BytesMessage</code>.</p></div></div></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title"><a id="d0e5069"/>23.4. Streaming Alternative</h2></div></div></div><p>If you choose not to use the <code class="literal">InputStream</code> or <code class="literal">OutputStream</code> capability of HornetQ You could still access the data
+            directly in an alternative fashion.</p><p>On the Core API just get the bytes of the body as you normally would.</p><pre xmlns="" xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" class="">
+ClientMessage msg = consumer.receive();
+         
+byte[] bytes = new byte[1024];
+for (int i = 0 ;  i &lt; msg.getBodySize(); i += bytes.length)
+{
+   msg.getBody().readBytes(bytes);
+   // Whatever you want to do with the bytes
+}</pre><p>If using JMS API, <code class="literal">BytesMessage</code> and <code class="literal">StreamMessage</code>
+            also supports it transparently.</p><pre xmlns="" xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" class="">
+BytesMessage rm = (BytesMessage)cons.receive(10000);
+
+byte data[] = new byte[1024];
+
+for (int i = 0; i &lt; rm.getBodyLength(); i += 1024)
+{
+   int numberOfBytes = rm.readBytes(data);
+   // Do whatever you want with the data
+}        </pre></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title"><a id="large-messages.example"/>23.5. Large message example</h2></div></div></div><p>Please see <a class="xref" href="examples.html#examples.large-message" title="11.1.36. Large Message">Section 11.1.36, “Large Message”</a> for an example which shows how
+            large message is configured and used with JMS.</p></div></div><ul class="docnav"><li class="previous"><a accesskey="p" href="message-expiry.html"><strong>Prev</strong>Chapter 22. Message Expiry</a></li><li class="up"><a accesskey="u" href="#"><strong>Top of page</strong></a></li><li class="home"><a accesskey="h" href="index.html"><strong>Front page</strong></a></li><li class="next"><a accesskey="n" href="paging.html"><strong>Next</strong>Chapter 24. Paging</a></li></ul></body></html>

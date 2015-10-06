@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><title xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory">Chapter 16. Configuring the Transport</title><link rel="stylesheet" href="css/jbossorg.css" type="text/css"/><meta xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" name="generator" content="DocBook XSL Stylesheets V1.74.0"/><meta xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" http-equiv="Content-Type" content="text/html; charset=UTF-8"/><link rel="home" href="index.html" title="HornetQ User Manual"/><link rel="up" href="index.html" title="HornetQ User Manual"/><link rel="prev" href="persistence.html" title="Chapter 15. Persistence"/><link rel="next" href="connection-ttl.html" title="Chapter 17. Detecting Dead Connections"/></head><body><p id="title"><a href="http://www.jboss.org" class="site_href"><strong>JBoss.org</strong></a><a href="http://docs.jboss.org/" class="doc_href"><strong>Community Documentation</strong></a></p><ul class="docnav"><li class="previous"><a accesskey="p" href="persistence.html"><strong>Prev</strong></a></li><li class="next"><a accesskey="n" href="connection-ttl.html"><strong>Next</strong></a></li></ul><div class="chapter" lang="en"><div class="titlepage"><div><div><h2 class="title"><a id="configuring-transports"/>Chapter 16. Configuring the Transport</h2></div></div></div><div class="toc"><dl><dt><span class="section"><a href="configuring-transports.html#configuring-transports.acceptors">16.1. Understanding Acceptors</a></span></dt><dt><span class="section"><a href="configuring-transports.html#configuring-transports.connectors">16.2. Understanding Connectors</a></span></dt><dt><span class="section"><a href="configuring-transports.html#configuring-transports.client.side">16.3. Configuring the transport directly from the client side.</a></span></dt><dt><span class="section"><a href="configuring-transports.html#d0e3433">16.4. Configuring the Netty transport</a></span></dt><dd><dl><dt><span class="section"><a href="configuring-transports.html#d0e3445">16.4.1. Single Port Support</a></span></dt><dt><span class="section"><a href="configuring-transports.html#d0e3463">16.4.2. Configuring Netty TCP</a></span></dt><dt><span class="section"><a href="configuring-transports.html#d0e3620">16.4.3. Configuring Netty SSL</a></span></dt><dt><span class="section"><a href="configuring-transports.html#d0e3758">16.4.4. Configuring Netty HTTP</a></span></dt><dt><span class="section"><a href="configuring-transports.html#d0e3798">16.4.5. Configuring Netty Servlet</a></span></dt></dl></dd></dl></div><p>HornetQ has a fully pluggable and highly flexible transport layer and defines its own
+        Service Provider Interface (SPI) to make plugging in a new transport provider relatively
+        straightforward.</p><p>In this chapter we'll describe the concepts required for understanding HornetQ transports
+        and where and how they're configured.</p><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title"><a id="configuring-transports.acceptors"/>16.1. Understanding Acceptors</h2></div></div></div><p>One of the most important concepts in HornetQ transports is the
+                <span class="emphasis"><em>acceptor</em></span>. Let's dive straight in and take a look at an acceptor
+            defined in xml in the configuration file <code class="literal">hornetq-configuration.xml</code>.</p><pre xmlns="" xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" class="">
+&lt;acceptors&gt;
+   &lt;acceptor name="netty"&gt;
+      &lt;factory-class&gt;
+         org.hornetq.core.remoting.impl.netty.NettyAcceptorFactory
+      &lt;/factory-class&gt;
+      &lt;param key="port" value="5446"/&gt;
+   &lt;/acceptor&gt;
+&lt;/acceptors&gt;</pre><p>Acceptors are always defined inside an <code class="literal">acceptors</code> element. There can
+            be one or more acceptors defined in the <code class="literal">acceptors</code> element. There's no
+            upper limit to the number of acceptors per server.</p><p>Each acceptor defines a way in which connections can be made to the HornetQ
+            server.</p><p>In the above example we're defining an acceptor that uses <a class="ulink" href="http://jboss.org/netty">Netty</a> to listen for connections at port
+                <code class="literal">5446</code>. </p><p>The <code class="literal">acceptor</code> element contains a sub-element <code class="literal">factory-class</code>, this element defines the factory used to create acceptor
+            instances. In this case we're using Netty to listen for connections so we use the Netty
+            implementation of an <code class="literal">AcceptorFactory</code> to do this. Basically, the
+                <code class="literal">factory-class</code> element determines which pluggable transport we're
+            going to use to do the actual listening.</p><p>The <code class="literal">acceptor</code> element can also be configured with zero or more
+                <code class="literal">param</code> sub-elements. Each <code class="literal">param</code> element defines
+            a key-value pair. These key-value pairs are used to configure the specific transport,
+            the set of valid key-value pairs depends on the specific transport be used and are
+            passed straight through to the underlying transport.</p><p>Examples of key-value pairs for a particular transport would be, say, to configure the
+            IP address to bind to, or the port to listen at.</p><p>Note that unlike versions before 2.4 an Acceptor can now support multiple protocols. By default this will
+            be all available protocols but can be limited by either the now deprecated <code class="literal">protocol</code> param or
+        by setting a comma seperated list to the newly added <code class="literal">protocols</code> parameter.</p></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title"><a id="configuring-transports.connectors"/>16.2. Understanding Connectors</h2></div></div></div><p>Whereas acceptors are used on the server to define how we accept connections,
+            connectors are used by a client to define how it connects to a server.</p><p>Let's look at a connector defined in our <code class="literal">hornetq-configuration.xml</code>
+            file:</p><pre xmlns="" xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" class="">
+&lt;connectors&gt;
+   &lt;connector name="netty"&gt;
+      &lt;factory-class&gt;
+         org.hornetq.core.remoting.impl.netty.NettyConnectorFactory
+      &lt;/factory-class&gt;
+      &lt;param key="port" value="5446"/&gt;
+   &lt;/connector&gt;
+&lt;/connectors&gt;</pre><p>Connectors can be defined inside a <code class="literal">connectors</code> element. There can be
+            one or more connectors defined in the <code class="literal">connectors</code> element. There's no
+            upper limit to the number of connectors per server.</p><p>You make ask yourself, if connectors are used by the <span class="emphasis"><em>client</em></span> to
+            make connections then why are they defined on the <span class="emphasis"><em>server</em></span>? There are
+            a couple of reasons for this:</p><div class="itemizedlist"><ul><li><p>Sometimes the server acts as a client itself when it connects to another
+                    server, for example when one server is bridged to another, or when a server
+                    takes part in a cluster. In this cases the server needs to know how to connect
+                    to other servers. That's defined by <span class="emphasis"><em>connectors</em></span>.</p></li><li><p>If you're using JMS and the server side JMS service to instantiate JMS
+                    ConnectionFactory instances and bind them in JNDI, then when creating the
+                        <code class="literal">HornetQConnectionFactory</code> it needs to know what server
+                    that connection factory will create connections to.</p><p>That's defined by the <code class="literal">connector-ref</code> element in the <code class="literal">hornetq-jms.xml</code> file on the server side. Let's take a look at a
+                    snipped from a <code class="literal">hornetq-jms.xml</code> file that shows a JMS
+                    connection factory that references our netty connector defined in our <code class="literal">hornetq-configuration.xml</code> file:</p><pre xmlns="" xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" class="">
+&lt;connection-factory name="ConnectionFactory"&gt;
+   &lt;connectors&gt;
+      &lt;connector-ref connector-name="netty"/&gt;
+   &lt;/connectors&gt;
+   &lt;entries&gt;
+      &lt;entry name="ConnectionFactory"/&gt;
+      &lt;entry name="XAConnectionFactory"/&gt;
+   &lt;/entries&gt;
+&lt;/connection-factory&gt;</pre></li></ul></div></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title"><a id="configuring-transports.client.side"/>16.3. Configuring the transport directly from the client side.</h2></div></div></div><p>How do we configure a core <code class="literal">ClientSessionFactory</code> with the
+            information that it needs to connect with a server?</p><p>Connectors are also used indirectly when directly configuring a core <code class="literal">ClientSessionFactory</code> to directly talk to a server. Although in this case
+            there's no need to define such a connector in the server side configuration, instead we
+            just create the parameters and tell the <code class="literal">ClientSessionFactory</code> which
+            connector factory to use.</p><p>Here's an example of creating a <code class="literal">ClientSessionFactory</code> which will
+            connect directly to the acceptor we defined earlier in this chapter, it uses the
+            standard Netty TCP transport and will try and connect on port 5446 to localhost
+            (default):</p><pre xmlns="" xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" class="">
+Map&lt;String, Object&gt; connectionParams = new HashMap&lt;String, Object&gt;();
+
+connectionParams.put(org.hornetq.core.remoting.impl.netty.TransportConstants.PORT_PROP_NAME,
+                    5446);
+
+TransportConfiguration transportConfiguration =
+    new TransportConfiguration(
+    "org.hornetq.core.remoting.impl.netty.NettyConnectorFactory",
+    connectionParams);
+
+ServerLocator locator = HornetQClient.createServerLocatorWithoutHA(transportConfiguration);
+
+ClientSessionFactory sessionFactory = locator.createClientSessionFactory();
+
+ClientSession session = sessionFactory.createSession(...);
+
+etc</pre><p>Similarly, if you're using JMS, you can configure the JMS connection factory directly
+            on the client side without having to define a connector on the server side or define a
+            connection factory in <code class="literal">hornetq-jms.xml</code>:</p><pre xmlns="" xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" class="">
+Map&lt;String, Object&gt; connectionParams = new HashMap&lt;String, Object&gt;();
+
+connectionParams.put(org.hornetq.core.remoting.impl.netty.TransportConstants.PORT_PROP_NAME, 5446);
+
+TransportConfiguration transportConfiguration =
+    new TransportConfiguration(
+    "org.hornetq.core.remoting.impl.netty.NettyConnectorFactory",
+    connectionParams);
+
+ConnectionFactory connectionFactory = HornetQJMSClient.createConnectionFactoryWithoutHA(JMSFactoryType.CF, transportConfiguration);
+
+Connection jmsConnection = connectionFactory.createConnection();
+
+etc</pre></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title"><a id="d0e3433"/>16.4. Configuring the Netty transport</h2></div></div></div><p>Out of the box, HornetQ currently uses <a class="ulink" href="http://www.jboss.org/netty/">Netty</a>, a high performance low level network library.</p><p>Our Netty transport can be configured in several different ways; to use old (blocking)
+            Java IO, or NIO (non-blocking), also to use straightforward TCP sockets, SSL, or to
+            tunnel over HTTP or HTTPS..</p><p>We believe this caters for the vast majority of transport requirements.</p><div class="section" lang="en"><div class="titlepage"><div><div><h3 class="title"><a id="d0e3445"/>16.4.1. Single Port Support</h3></div></div></div><p>As of version 2.4 HornetQ now supports using a single port for all protocols, HornetQ will automatically
+            detect which protocol is being used CORE, AMQP or STOMP and use the appropriate HornetQ handler. It will also detect
+            whether protocols such as HTTP or Web Sockets are being used and also use the appropriate decoders</p><p>It is possible to limit which protocols are supported by using the <code class="literal">protocols</code> parameter
+            on the Acceptor like so:</p><pre xmlns="" xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" class="">
+    &lt;param key="protocols" value="CORE,AMQP"/&gt;
+            </pre><div xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" class="note"><h2>Note</h2><p>The <code class="literal">protocol</code> parameter is now deprecated</p></div></div><div class="section" lang="en"><div class="titlepage"><div><div><h3 class="title"><a id="d0e3463"/>16.4.2. Configuring Netty TCP</h3></div></div></div><p>Netty TCP is a simple unencrypted TCP sockets based transport. Netty TCP can be
+                configured to use old blocking Java IO or non blocking Java NIO. We recommend you
+                use the Java NIO on the server side for better scalability with many concurrent
+                connections. However using Java old IO can sometimes give you better latency than
+                NIO when you're not so worried about supporting many thousands of concurrent
+                connections. </p><p>If you're running connections across an untrusted network please bear in mind this
+                transport is unencrypted. You may want to look at the SSL or HTTPS
+                configurations.</p><p>With the Netty TCP transport all connections are initiated from the client side.
+                I.e. the server does not initiate any connections to the client. This works well
+                with firewall policies that typically only allow connections to be initiated in one
+                direction.</p><p>All the valid Netty transport keys are defined in the class <code class="literal">org.hornetq.core.remoting.impl.netty.TransportConstants</code>. Most
+                parameters can be used either with acceptors or connectors, some only work with
+                acceptors. The following parameters can be used to configure Netty for simple
+                TCP:</p><div class="itemizedlist"><ul><li><p><code class="literal">use-nio</code>. If this is <code class="literal">true</code> then Java
+                        non blocking NIO will be used. If set to <code class="literal">false</code> then old
+                        blocking Java IO will be used.</p><p>If you require the server to handle many concurrent connections, we highly
+                        recommend that you use non blocking Java NIO. Java NIO does not maintain a
+                        thread per connection so can scale to many more concurrent connections than
+                        with old blocking IO. If you don't require the server to handle many
+                        concurrent connections, you might get slightly better performance by using
+                        old (blocking) IO. The default value for this property is <code class="literal">false</code> on the server side and <code class="literal">false</code> on the
+                        client side.</p></li><li><p><code class="literal">host</code>. This specifies the host name or IP address to
+                        connect to (when configuring a connector) or to listen on (when configuring
+                        an acceptor). The default value for this property is <code class="literal">localhost</code>. When configuring acceptors, multiple hosts or IP
+                        addresses can be specified by separating them with commas. It is also
+                        possible to specify <code class="code">0.0.0.0</code> to accept connection from all the
+                        host's network interfaces. It's not valid to specify multiple addresses when
+                        specifying the host for a connector; a connector makes a connection to one
+                        specific address.</p><div xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" class="note"><h2>Note</h2><p>Don't forget to specify a host name or IP address! If you want your
+                            server able to accept connections from other nodes you must specify a
+                            hostname or IP address at which the acceptor will bind and listen for
+                            incoming connections. The default is localhost which of course is not
+                            accessible from remote nodes!</p></div></li><li><p><code class="literal">port</code>. This specified the port to connect to (when
+                        configuring a connector) or to listen on (when configuring an acceptor). The
+                        default value for this property is <code class="literal">5445</code>.</p></li><li><p><code class="literal">tcp-no-delay</code>. If this is <code class="literal">true</code> then
+                            <a class="ulink" href="http://en.wikipedia.org/wiki/Nagle%27s_algorithm">Nagle's
+                            algorithm</a> will be disabled. This is a
+                            <a class="ulink" href="http://docs.oracle.com/javase/7/docs/technotes/guides/net/socketOpt.html">Java (client) socket option</a>. The default value for this property is <code class="literal">true</code>.</p></li><li><p><code class="literal">tcp-send-buffer-size</code>. This parameter determines the
+                        size of the TCP send buffer in bytes. The default value for this property is
+                            <code class="literal">32768</code> bytes (32KiB).</p><p>TCP buffer sizes should be tuned according to the bandwidth and latency of
+                        your network. Here's a good link that explains the theory behind <a class="ulink" href="http://www-didc.lbl.gov/TCP-tuning/">this</a>.</p><p>In summary TCP send/receive buffer sizes should be calculated as:</p><pre xmlns="" xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" class="">
+buffer_size = bandwidth * RTT.</pre><p>Where bandwidth is in <span class="emphasis"><em>bytes per second</em></span> and network
+                        round trip time (RTT) is in seconds. RTT can be easily measured using the
+                            <code class="literal">ping</code> utility.</p><p>For fast networks you may want to increase the buffer sizes from the
+                        defaults.</p></li><li><p><code class="literal">tcp-receive-buffer-size</code>. This parameter determines the
+                        size of the TCP receive buffer in bytes. The default value for this property
+                        is <code class="literal">32768</code> bytes (32KiB).</p></li><li><p><code class="literal">batch-delay</code>. Before writing packets to the transport,
+                        HornetQ can be configured to batch up writes for a maximum of <code class="literal">batch-delay</code> milliseconds. This can increase overall
+                        throughput for very small messages. It does so at the expense of an increase
+                        in average latency for message transfer. The default value for this property
+                        is <code class="literal">0</code> ms.</p></li><li><p><code class="literal">direct-deliver</code>. When a message arrives on the server
+                        and is delivered to waiting consumers, by default, the delivery is done on
+                        the same thread as that on which the message arrived. This gives good latency
+                        in environments with relatively small messages and a small number of consumers,
+                        but at the cost of overall throughput and scalability - especially on multi-core
+                        machines. If you want the lowest latency and a possible reduction in throughput
+                        then you can use the default value for <code class="literal">direct-deliver</code> (i.e.
+                        true). If you are willing to take some small extra hit on latency but want the
+                        highest throughput set <code class="literal">direct-deliver</code> to <code class="literal">false
+                        </code>.</p></li><li><p><code class="literal">nio-remoting-threads</code>. When configured to use NIO,
+                        HornetQ will, by default, use a number of threads equal to three times the
+                        number of cores (or hyper-threads) as reported by <code class="literal">Runtime.getRuntime().availableProcessors()</code> for processing
+                        incoming packets. If you want to override this value, you can set the number
+                        of threads by specifying this parameter. The default value for this
+                        parameter is <code class="literal">-1</code> which means use the value from <code class="literal">Runtime.getRuntime().availableProcessors()</code> * 3.</p></li><li><p><code class="literal">local-address</code>. When configured a Netty Connector it is possible to specify
+                        which local address the client will use when connecting to the remote address. This is typically used
+                        in the Application Server or when running Embedded to control which address is used for outbound
+                        connections. If the local-address is not set then the connector will use any local address available</p></li><li><p><code class="literal">local-port</code>. When configured a Netty Connector it is possible to specify
+                        which local port the client will use when connecting to the remote address. This is typically used
+                        in the Application Server or when running Embedded to control which port is used for outbound
+                        connections. If the local-port default is used, which is 0, then the connector will let the
+                       system pick up an ephemeral port. valid ports are 0 to 65535</p></li></ul></div></div><div class="section" lang="en"><div class="titlepage"><div><div><h3 class="title"><a id="d0e3620"/>16.4.3. Configuring Netty SSL</h3></div></div></div><p>Netty SSL is similar to the Netty TCP transport but it provides additional
+                security by encrypting TCP connections using the Secure Sockets Layer SSL</p><p>Please see the examples for a full working example of using Netty SSL.</p><p>Netty SSL uses all the same properties as Netty TCP but adds the following
+                additional properties:</p><div class="itemizedlist"><ul><li><p><code class="literal">ssl-enabled</code></p><p>Must be <code class="literal">true</code> to enable SSL. Default is <code class="literal">false</code>.</p></li><li><p><code class="literal">key-store-path</code></p><p>When used on an <code class="literal">acceptor</code> this is the path to the SSL key
+                        store on the server which holds the server's certificates (whether self-signed
+                        or signed by an authority).</p><p>When used on a <code class="literal">connector</code> this is the path to the client-side
+                        SSL key store which holds the client certificates. This is only relevant
+                        for a <code class="literal">connector</code> if you are using 2-way SSL (i.e. mutual
+                        authentication). Although this value is configured on the server, it is
+                        downloaded and used by the client. If the client needs to use a different path
+                        from that set on the server then it can override the server-side setting by either
+                        using the customary "javax.net.ssl.keyStore" system property or the HornetQ-specific
+                        "org.hornetq.ssl.keyStore" system property. The HornetQ-specific system property
+                        is useful if another component on client is already making use of the standard, Java
+                        system property.</p></li><li><p><code class="literal">key-store-password</code></p><p>When used on an <code class="literal">acceptor</code> this is the password for the
+                        server-side keystore.</p><p>When used on a <code class="literal">connector</code> this is the password for the
+                        client-side keystore.  This is only relevant for a <code class="literal">connector</code>
+                        if you are using 2-way SSL (i.e. mutual authentication). Although this value can
+                        be configured on the server, it is downloaded and used by the client.  If the client
+                        needs to use a different password from that set on the server then it can override
+                        the server-side setting by either using the customary "javax.net.ssl.keyStorePassword"
+                        system property or the HornetQ-specific "org.hornetq.ssl.keyStorePassword" system
+                        property. The HornetQ-specific system property is useful if another component on client
+                        is already making use of the standard, Java system property.</p></li><li><p><code class="literal">trust-store-path</code></p><p>When used on an <code class="literal">acceptor</code> this is the path to the server-side
+                        SSL key store that holds the keys of all the clients that the server trusts.  This
+                        is only relevant for an <code class="literal">acceptor</code> if you are using 2-way SSL
+                        (i.e. mutual authentication).</p><p>When used on a <code class="literal">connector</code> this is the path to the client-side
+                        SSL key store which holds the public keys of all the servers that the client
+                        trusts. Although this value can be configured on the server, it is downloaded and
+                        used by the client.  If the client needs to use a different path
+                        from that set on the server then it can override the server-side setting by either
+                        using the customary "javax.net.ssl.trustStore" system property or the HornetQ-specific
+                        "org.hornetq.ssl.trustStore" system property. The HornetQ-specific system property
+                        is useful if another component on client is already making use of the standard, Java
+                        system property.</p></li><li><p><code class="literal">trust-store-password</code></p><p>When used on an <code class="literal">acceptor</code> this is the password for the
+                        server-side trust store.  This is only relevant for an <code class="literal">acceptor</code>
+                        if you are using 2-way SSL (i.e. mutual authentication).</p><p>When used on a <code class="literal">connector</code> this is the password for the
+                        client-side truststore. Although this value can be configured on the server, it is
+                        downloaded and used by the client.   If the client
+                        needs to use a different password from that set on the server then it can override
+                        the server-side setting by either using the customary "javax.net.ssl.trustStorePassword"
+                        system property or the HornetQ-specific "org.hornetq.ssl.trustStorePassword" system
+                        property. The HornetQ-specific system property is useful if another component on client
+                        is already making use of the standard, Java system property.</p></li><li><p><code class="literal">enabled-cipher-suites</code></p><p>Whether used on an <code class="literal">acceptor</code> or <code class="literal">connector</code> this is a
+                        comma separated list of cipher suites used for SSL communication. The default value is
+                        <code class="literal">null</code> which means the JVM's default will be used.</p></li><li><p><code class="literal">enabled-protocols</code></p><p>Whether used on an <code class="literal">acceptor</code> or <code class="literal">connector</code> this is a
+                        comma separated list of protocols used for SSL communication. The default value is
+                        <code class="literal">null</code> which means the JVM's default will be used.</p></li><li><p><code class="literal">need-client-auth</code></p><p>This property is only for an <code class="literal">acceptor</code>. It tells a client connecting to this
+                        acceptor that 2-way SSL is required. Valid values are <code class="literal">true</code> or
+                        <code class="literal">false</code>. Default is <code class="literal">false</code>.</p></li></ul></div></div><div class="section" lang="en"><div class="titlepage"><div><div><h3 class="title"><a id="d0e3758"/>16.4.4. Configuring Netty HTTP</h3></div></div></div><p>Netty HTTP tunnels packets over the HTTP protocol. It can be useful in scenarios
+                where firewalls only allow HTTP traffic to pass.</p><p>Please see the examples for a full working example of using Netty HTTP.</p><p>Netty HTTP uses the same properties as Netty TCP but adds the following additional
+                properties:</p><div class="itemizedlist"><ul><li><p><code class="literal">http-enabled</code>. This is now no longer needed as of version 2.4. With single
+                        port support HornetQ will now automatically detect if http is being used and configure itself.</p></li><li><p><code class="literal">http-client-idle-time</code>. How long a client can be idle
+                        before sending an empty http request to keep the connection alive</p></li><li><p><code class="literal">http-client-idle-scan-period</code>. How often, in
+                        milliseconds, to scan for idle clients</p></li><li><p><code class="literal">http-response-time</code>. How long the server can wait before
+                        sending an empty http response to keep the connection alive</p></li><li><p><code class="literal">http-server-scan-period</code>. How often, in milliseconds, to
+                        scan for clients needing responses</p></li><li><p><code class="literal">http-requires-session-id</code>. If true the client will wait
+                        after the first call to receive a session id. Used the http connector is
+                        connecting to servlet acceptor (not recommended) </p></li></ul></div></div><div class="section" lang="en"><div class="titlepage"><div><div><h3 class="title"><a id="d0e3798"/>16.4.5. Configuring Netty Servlet</h3></div></div></div><p>As of 2.4 HornetQ Servlet support will be provided via Undertow in Wildfly</p></div></div></div><ul class="docnav"><li class="previous"><a accesskey="p" href="persistence.html"><strong>Prev</strong>Chapter 15. Persistence</a></li><li class="up"><a accesskey="u" href="#"><strong>Top of page</strong></a></li><li class="home"><a accesskey="h" href="index.html"><strong>Front page</strong></a></li><li class="next"><a accesskey="n" href="connection-ttl.html"><strong>Next</strong>Chapter 17. Detecting Dead Connections</a></li></ul></body></html>

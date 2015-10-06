@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><title xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory">Chapter 41. Thread management</title><link rel="stylesheet" href="css/jbossorg.css" type="text/css"/><meta xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" name="generator" content="DocBook XSL Stylesheets V1.74.0"/><meta xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" http-equiv="Content-Type" content="text/html; charset=UTF-8"/><link rel="home" href="index.html" title="HornetQ User Manual"/><link rel="up" href="index.html" title="HornetQ User Manual"/><link rel="prev" href="libaio.html" title="Chapter 40. Libaio Native Libraries"/><link rel="next" href="logging.html" title="Chapter 42. Logging"/></head><body><p id="title"><a href="http://www.jboss.org" class="site_href"><strong>JBoss.org</strong></a><a href="http://docs.jboss.org/" class="doc_href"><strong>Community Documentation</strong></a></p><ul class="docnav"><li class="previous"><a accesskey="p" href="libaio.html"><strong>Prev</strong></a></li><li class="next"><a accesskey="n" href="logging.html"><strong>Next</strong></a></li></ul><div class="chapter" lang="en"><div class="titlepage"><div><div><h2 class="title"><a id="thread-pooling"/>Chapter 41. Thread management</h2></div></div></div><div class="toc"><dl><dt><span class="section"><a href="thread-pooling.html#d0e12031">41.1. Server-Side Thread Management</a></span></dt><dd><dl><dt><span class="section"><a href="thread-pooling.html#server.scheduled.thread.pool">41.1.1. Server Scheduled Thread Pool</a></span></dt><dt><span class="section"><a href="thread-pooling.html#d0e12077">41.1.2. General Purpose Server Thread Pool</a></span></dt><dt><span class="section"><a href="thread-pooling.html#d0e12119">41.1.3. Expiry Reaper Thread</a></span></dt><dt><span class="section"><a href="thread-pooling.html#d0e12128">41.1.4. Asynchronous IO</a></span></dt></dl></dd><dt><span class="section"><a href="thread-pooling.html#thread-pooling.client.side">41.2. Client-Side Thread Management</a></span></dt></dl></div><p>This chapter describes how HornetQ uses and pools threads and how you can manage
+        them.</p><p>First we'll discuss how threads are managed and used on the server side, then we'll look
+        at the client side.</p><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title"><a id="d0e12031"/>41.1. Server-Side Thread Management</h2></div></div></div><p>Each HornetQ Server maintains a single thread pool for general use, and a scheduled
+            thread pool for scheduled use. A Java scheduled thread pool cannot be configured to use
+            a standard thread pool, otherwise we could use a single thread pool for both scheduled
+            and non scheduled activity.</p><p>A separate thread pool is also used to service connections. HornetQ can use "old"
+            (blocking) IO or "new" (non-blocking) IO also called NIO.  Both of these options use
+            a separate thread pool, but each of them behaves uniquely.</p><p>Since old IO requires a thread per connection its thread pool is unbounded. The thread
+            pool is created via <code class="literal">
+            java.util.concurrent.Executors.newCachedThreadPool(ThreadFactory)</code>.  As the
+            JavaDoc for this method states:
+            “<span class="quote">Creates a thread pool that creates new threads as needed, but will reuse previously
+            constructed threads when they are available, and uses the provided ThreadFactory to create
+            new threads when needed.</span>”
+            Threads from this pool which are idle for more than 60 seconds will time out and be
+            removed.  If old IO connections were serviced from the standard pool the pool would
+            easily get exhausted if too many connections were made, resulting in the server "hanging"
+            since it has no remaining threads to do anything else. However, even an unbounded thread
+            pool can run into trouble if it becomes too large. If you require the server to handle
+            many concurrent connections you should use NIO, not old IO.</p><p>When using new IO (NIO), HornetQ will, by default, cap its thread pool at three times
+            the number of cores (or hyper-threads) as reported by <code class="literal">
+            Runtime.getRuntime().availableProcessors()</code> for processing incoming packets.
+            To override this value, you can set the number of threads by specifying the parameter
+            <code class="literal">nio-remoting-threads</code> in the transport configuration. See the
+            <a class="xref" href="configuring-transports.html" title="Chapter 16. Configuring the Transport">Chapter 16, <i>Configuring the Transport</i></a> for more information on this.</p><p>There are also a small number of other places where threads are used directly, we'll
+            discuss each in turn.</p><div class="section" lang="en"><div class="titlepage"><div><div><h3 class="title"><a id="server.scheduled.thread.pool"/>41.1.1. Server Scheduled Thread Pool</h3></div></div></div><p>The server scheduled thread pool is used for most activities on the server side
+                that require running periodically or with delays. It maps internally to a <code class="literal">java.util.concurrent.ScheduledThreadPoolExecutor</code> instance.</p><p>The maximum number of thread used by this pool is configure in <code class="literal">hornetq-configuration.xml</code> with the <code class="literal">scheduled-thread-pool-max-size</code> parameter. The default value is
+                    <code class="literal">5</code> threads. A small number of threads is usually sufficient
+                for this pool.</p></div><div class="section" lang="en"><div class="titlepage"><div><div><h3 class="title"><a id="d0e12077"/>41.1.2. General Purpose Server Thread Pool</h3></div></div></div><p>This general purpose thread pool is used for most asynchronous actions on the
+                server side. It maps internally to a <code class="literal">java.util.concurrent.ThreadPoolExecutor</code> instance.</p><p>The maximum number of thread used by this pool is configure in <code class="literal">hornetq-configuration.xml</code> with the <code class="literal">thread-pool-max-size</code> parameter.</p><p>If a value of <code class="literal">-1</code> is used this signifies that the thread pool
+                has no upper bound and new threads will be created on demand if there are not enough
+                threads available to satisfy a request. If activity later subsides then threads are
+                timed-out and closed.</p><p>If a value of <code class="literal">n</code> where <code class="literal">n</code>is a positive integer
+                greater than zero is used this signifies that the thread pool is bounded. If more
+                requests come in and there are no free threads in the pool and the pool is full then
+                requests will block until a thread becomes available. It is recommended that a
+                bounded thread pool is used with caution since it can lead to dead-lock situations
+                if the upper bound is chosen to be too low.</p><p>The default value for <code class="literal">thread-pool-max-size</code> is <code class="literal">30</code>.</p><p>See the <a class="ulink" href="http://docs.oracle.com/javase/6/docs/api/java/util/concurrent/ThreadPoolExecutor.htm">J2SE javadoc</a> for more information on unbounded (cached), and bounded
+                (fixed) thread pools.</p></div><div class="section" lang="en"><div class="titlepage"><div><div><h3 class="title"><a id="d0e12119"/>41.1.3. Expiry Reaper Thread</h3></div></div></div><p>A single thread is also used on the server side to scan for expired messages in
+                queues. We cannot use either of the thread pools for this since this thread needs to
+                run at its own configurable priority.</p><p>For more information on configuring the reaper, please see <a class="xref" href="message-expiry.html" title="Chapter 22. Message Expiry">Chapter 22, <i>Message Expiry</i></a>.</p></div><div class="section" lang="en"><div class="titlepage"><div><div><h3 class="title"><a id="d0e12128"/>41.1.4. Asynchronous IO</h3></div></div></div><p>Asynchronous IO has a thread pool for receiving and dispatching events out of the
+                native layer. You will find it on a thread dump with the prefix
+                HornetQ-AIO-poller-pool. HornetQ uses one thread per opened file on the journal
+                (there is usually one).</p><p>There is also a single thread used to invoke writes on libaio. We do that to avoid
+                context switching on libaio that would cause performance issues. You will find this
+                thread on a thread dump with the prefix HornetQ-AIO-writer-pool.</p></div></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title"><a id="thread-pooling.client.side"/>41.2. Client-Side Thread Management</h2></div></div></div><p>On the client side, HornetQ maintains a single static scheduled thread pool and a
+            single static general thread pool for use by all clients using the same classloader in
+            that JVM instance.</p><p>The static scheduled thread pool has a maximum size of <code class="literal">5</code> threads,
+            and the general purpose thread pool has an unbounded maximum size.</p><p>If required HornetQ can also be configured so that each <code class="literal">ClientSessionFactory</code> instance does not use these static pools but instead
+            maintains its own scheduled and general purpose pool. Any sessions created from that
+                <code class="literal">ClientSessionFactory</code> will use those pools instead.</p><p>To configure a <code class="literal">ClientSessionFactory</code> instance to use its own pools,
+            simply use the appropriate setter methods immediately after creation, for
+            example:</p><pre xmlns="" xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" class="">
+ServerLocator locator = HornetQClient.createServerLocatorWithoutHA(...)
+ClientSessionFactory myFactory = locator.createClientSessionFactory();
+myFactory.setUseGlobalPools(false);
+myFactory.setScheduledThreadPoolMaxSize(10);
+myFactory.setThreadPoolMaxSize(-1);   </pre><p>If you're using the JMS API, you can set the same parameters on the
+            ClientSessionFactory and use it to create the <code class="literal">ConnectionFactory</code>
+            instance, for example:</p><pre xmlns="" xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" class="">
+ConnectionFactory myConnectionFactory = HornetQJMSClient.createConnectionFactory(myFactory);</pre><p>If you're using JNDI to instantiate <code class="literal">HornetQConnectionFactory</code>
+            instances, you can also set these parameters in the <code class="literal">hornetq-jms.xml</code>
+            file where you describe your connection factory, for example:</p><pre xmlns="" xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" class="">
+&lt;connection-factory name="ConnectionFactory"&gt;
+   &lt;connectors&gt;
+      &lt;connector-ref connector-name="netty"/&gt;
+   &lt;/connectors&gt;
+   &lt;entries&gt;
+      &lt;entry name="ConnectionFactory"/&gt;
+      &lt;entry name="XAConnectionFactory"/&gt;
+   &lt;/entries&gt;
+   &lt;use-global-pools&gt;false&lt;/use-global-pools&gt;
+   &lt;scheduled-thread-pool-max-size&gt;10&lt;/scheduled-thread-pool-max-size&gt;
+   &lt;thread-pool-max-size&gt;-1&lt;/thread-pool-max-size&gt;
+&lt;/connection-factory&gt;</pre></div></div><ul class="docnav"><li class="previous"><a accesskey="p" href="libaio.html"><strong>Prev</strong>Chapter 40. Libaio Native Libraries</a></li><li class="up"><a accesskey="u" href="#"><strong>Top of page</strong></a></li><li class="home"><a accesskey="h" href="index.html"><strong>Front page</strong></a></li><li class="next"><a accesskey="n" href="logging.html"><strong>Next</strong>Chapter 42. Logging</a></li></ul></body></html>

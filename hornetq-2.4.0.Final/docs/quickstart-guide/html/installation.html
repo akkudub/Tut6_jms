@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><title xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory">Chapter 5. Installation</title><link rel="stylesheet" href="css/jbossorg.css" type="text/css"/><meta xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" name="generator" content="DocBook XSL Stylesheets V1.74.0"/><meta xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" http-equiv="Content-Type" content="text/html; charset=UTF-8"/><link rel="home" href="index.html" title="HornetQ QuickStart Guide"/><link rel="up" href="index.html" title="HornetQ QuickStart Guide"/><link rel="prev" href="download.html" title="Chapter 4. Download"/><link rel="next" href="running.html" title="Chapter 6. Starting The Server"/></head><body><p id="title"><a href="http://www.jboss.org" class="site_href"><strong>JBoss.org</strong></a><a href="http://docs.jboss.org/" class="doc_href"><strong>Community Documentation</strong></a></p><ul class="docnav"><li class="previous"><a accesskey="p" href="download.html"><strong>Prev</strong></a></li><li class="next"><a accesskey="n" href="running.html"><strong>Next</strong></a></li></ul><div class="chapter" lang="en"><div class="titlepage"><div><div><h2 class="title"><a id="installation"/>Chapter 5. Installation</h2></div></div></div><div class="toc"><dl><dt><span class="section"><a href="installation.html#installation.prerequisites">5.1. Prerequisites</a></span></dt><dt><span class="section"><a href="installation.html#installation.standalone">5.2. Stand-alone HornetQ Server</a></span></dt></dl></div><p>This section describes how to install HornetQ. </p><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title"><a id="installation.prerequisites"/>5.1. Prerequisites</h2></div></div></div><div xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" class="note"><h2>Note</h2><p>HornetQ only runs on Java 7 or later.</p></div><p>By default, HornetQ server runs with 1GiB of memory. If your computer has less memory,
+         or you want to run it with more available RAM, modify the value in <code class="literal">bin/run.sh</code> accordingly.</p><p>For persistence, HornetQ uses its own fast journal, which you can configure to use
+         libaio (which is the default when running on Linux) or Java NIO. In order to use the libaio
+         module on Linux, you'll need to install libaio, if it's not already installed.</p><p>If you're not running on Linux then you don't need to worry about this.</p><p>You can install libaio using the following steps as the root user:</p><p>Using yum, (e.g. on Fedora or Red Hat Enterprise Linux):</p><pre xmlns="" xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" class="">yum install libaio</pre><p>Using aptitude, (e.g. on Ubuntu or Debian system):</p><pre xmlns="" xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" class="">apt-get install libaio</pre></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title"><a id="installation.standalone"/>5.2. Stand-alone HornetQ Server</h2></div></div></div><p>After downloading the distribution, unzip it into your chosen directory. At this point
+         it should be possible to <a class="link" href="running.html#running.standalone" title="6.1. Standalone HornetQ">run straight out of the
+            box</a>, the following describes the directory structure: </p><pre xmlns="" xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" class="">
+         |___ bin
+         |
+         |___ config
+         |      |___ jboss-as-4
+         |      |___ jboss-as-5
+         |      |___ stand-alone
+         |
+         |___ docs
+         |      |___ api
+         |      |___ quickstart-guide
+         |      |___ user-manual
+         |
+         |___ examples
+         |      |___ core
+         |      |___ javaee
+         |      |___ jms
+         |
+         |___ lib
+         |
+         |___ licenses
+         |
+         |___ schemas
+      </pre><div class="itemizedlist"><ul><li><p><code class="literal">bin</code> -- binaries and scripts needed to run HornetQ.</p></li><li><p><code class="literal">config</code> -- configuration files needed to configure HornetQ. This
+               contains configurations to run HornetQ either in stand-alone or inside JBoss AS 4 and 5.
+               Please refer to the reference guide for details on configuration. </p></li><li><p><code class="literal">docs</code> -- guides and javadocs for HornetQ </p></li><li><p><code class="literal">examples</code> -- JMS and Java EE examples. Please refer to the
+               'running examples' chapter for details on how to run them. </p></li><li><p><code class="literal">lib</code> -- jars and libraries needed to run HornetQ </p></li><li><p><code class="literal">licenses</code> -- licenses for HornetQ </p></li><li><p><code class="literal">schemas</code> -- XML Schemas used to validate HornetQ configuration
+               files</p></li></ul></div></div></div><ul class="docnav"><li class="previous"><a accesskey="p" href="download.html"><strong>Prev</strong>Chapter 4. Download</a></li><li class="up"><a accesskey="u" href="#"><strong>Top of page</strong></a></li><li class="home"><a accesskey="h" href="index.html"><strong>Front page</strong></a></li><li class="next"><a accesskey="n" href="running.html"><strong>Next</strong>Chapter 6. Starting The Server</a></li></ul></body></html>

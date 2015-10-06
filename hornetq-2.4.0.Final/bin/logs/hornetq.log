@@ -1,0 +1,17 @@
+02:18:28,660 INFO  [org.hornetq.integration.bootstrap] HQ101000: Starting HornetQ Server
+02:18:29,591 WARN  [org.hornetq.core.server] HQ222018: AIO was not located on this platform, it will fall back to using pure Java NIO. If your platform is Linux, install LibAIO to enable the AIO journal
+02:18:29,795 INFO  [org.hornetq.core.server] HQ221000: live server is starting with configuration HornetQ Configuration (clustered=false,backup=false,sharedStore=true,journalDirectory=../data/journal,bindingsDirectory=../data/bindings,largeMessagesDirectory=../data/large-messages,pagingDirectory=../data/paging)
+02:18:29,809 INFO  [org.hornetq.core.server] HQ221006: Waiting to obtain live lock
+02:18:29,918 INFO  [org.hornetq.core.server] HQ221013: Using NIO Journal
+02:18:29,949 WARN  [org.hornetq.core.server] HQ222007: Security risk! HornetQ is running with the default cluster admin user and default password. Please see the HornetQ user guide, cluster chapter, for instructions on how to change this.
+02:18:29,962 INFO  [org.hornetq.core.server] HQ221043: Adding protocol support CORE
+02:18:29,965 INFO  [org.hornetq.core.server] HQ221043: Adding protocol support AMQP
+02:18:29,969 INFO  [org.hornetq.core.server] HQ221043: Adding protocol support STOMP
+02:18:30,085 INFO  [org.hornetq.core.server] HQ221034: Waiting to obtain live lock
+02:18:30,086 INFO  [org.hornetq.core.server] HQ221035: Live Server Obtained live lock
+02:18:31,407 INFO  [org.hornetq.core.server] HQ221003: trying to deploy queue jms.queue.DLQ
+02:18:31,473 INFO  [org.hornetq.core.server] HQ221003: trying to deploy queue jms.queue.ExpiryQueue
+02:18:31,737 INFO  [org.hornetq.core.server] HQ221020: Started Netty Acceptor version 4.0.13.Final localhost:5455
+02:18:31,754 INFO  [org.hornetq.core.server] HQ221020: Started Netty Acceptor version 4.0.13.Final localhost:5445
+02:18:31,756 INFO  [org.hornetq.core.server] HQ221007: Server is now live
+02:18:31,757 INFO  [org.hornetq.core.server] HQ221001: HornetQ Server version 2.5.0.SNAPSHOT (Wild Hornet, 124) [7ab374f8-6b8d-11e5-8e32-3beb0cdd96b5] 

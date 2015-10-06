@@ -1,0 +1,29 @@
+18:32:07,112 INFO  [org.hornetq.integration.bootstrap] HQ101000: Starting HornetQ Server
+18:32:08,132 WARN  [org.hornetq.core.server] HQ222018: AIO was not located on this platform, it will fall back to using pure Java NIO. If your platform is Linux, install LibAIO to enable the AIO journal
+18:32:08,227 INFO  [org.hornetq.core.server] HQ221000: live server is starting with configuration HornetQ Configuration (clustered=false,backup=false,sharedStore=true,journalDirectory=../data/journal,bindingsDirectory=../data/bindings,largeMessagesDirectory=../data/large-messages,pagingDirectory=../data/paging)
+18:32:08,231 INFO  [org.hornetq.core.server] HQ221006: Waiting to obtain live lock
+18:32:08,396 INFO  [org.hornetq.core.server] HQ221013: Using NIO Journal
+18:32:08,429 WARN  [org.hornetq.core.server] HQ222007: Security risk! HornetQ is running with the default cluster admin user and default password. Please see the HornetQ user guide, cluster chapter, for instructions on how to change this.
+18:32:08,444 INFO  [org.hornetq.core.server] HQ221043: Adding protocol support CORE
+18:32:08,448 INFO  [org.hornetq.core.server] HQ221043: Adding protocol support AMQP
+18:32:08,452 INFO  [org.hornetq.core.server] HQ221043: Adding protocol support STOMP
+18:32:08,580 INFO  [org.hornetq.core.server] HQ221034: Waiting to obtain live lock
+18:32:08,581 INFO  [org.hornetq.core.server] HQ221035: Live Server Obtained live lock
+18:32:09,428 INFO  [org.hornetq.core.server] HQ221003: trying to deploy queue jms.queue.DLQ
+18:32:09,444 INFO  [org.hornetq.core.server] HQ221003: trying to deploy queue jms.queue.ExpiryQueue
+18:32:09,517 INFO  [org.hornetq.core.server] HQ221003: trying to deploy queue jms.queue.CS3213SimpleQueue
+18:32:09,521 INFO  [org.hornetq.core.server] HQ221003: trying to deploy queue jms.topic.CS3213SimpleTopic
+18:32:09,713 INFO  [org.hornetq.core.server] HQ221020: Started Netty Acceptor version 4.0.13.Final localhost:5455
+18:32:09,728 INFO  [org.hornetq.core.server] HQ221020: Started Netty Acceptor version 4.0.13.Final localhost:5445
+18:32:09,731 INFO  [org.hornetq.core.server] HQ221007: Server is now live
+18:32:09,731 INFO  [org.hornetq.core.server] HQ221001: HornetQ Server version 2.5.0.SNAPSHOT (Wild Hornet, 124) [62dcec8c-6be0-11e5-9db8-0d1fe22f06e5] 
+18:33:45,749 WARN  [org.hornetq.core.client] HQ212037: Connection failure has been detected: HQ119014: Did not receive data from /127.0.0.1:5567. It is likely the client has exited or crashed without closing its connection, or the network between the server and client has failed. You also might have configured connection-ttl and client-failure-check-period incorrectly. Please check user manual for more information. The connection will now be closed. [code=CONNECTION_TIMEDOUT]
+18:33:45,753 WARN  [org.hornetq.core.server] HQ222061: Client connection failed, clearing up resources for session 82f649c1-6c15-11e5-94a1-37337160c93e
+18:33:45,756 WARN  [org.hornetq.core.server] HQ222107: Cleared up resources for session 82f649c1-6c15-11e5-94a1-37337160c93e
+18:33:45,757 WARN  [org.hornetq.core.server] HQ222061: Client connection failed, clearing up resources for session 82f9a522-6c15-11e5-94a1-37337160c93e
+18:33:45,759 WARN  [org.hornetq.core.server] HQ222107: Cleared up resources for session 82f9a522-6c15-11e5-94a1-37337160c93e
+18:33:49,767 WARN  [org.hornetq.core.client] HQ212037: Connection failure has been detected: HQ119014: Did not receive data from /127.0.0.1:5618. It is likely the client has exited or crashed without closing its connection, or the network between the server and client has failed. You also might have configured connection-ttl and client-failure-check-period incorrectly. Please check user manual for more information. The connection will now be closed. [code=CONNECTION_TIMEDOUT]
+18:33:49,770 WARN  [org.hornetq.core.server] HQ222061: Client connection failed, clearing up resources for session 84f5c3ca-6c15-11e5-afba-b1a14cd26e09
+18:33:49,771 WARN  [org.hornetq.core.server] HQ222107: Cleared up resources for session 84f5c3ca-6c15-11e5-afba-b1a14cd26e09
+18:33:49,772 WARN  [org.hornetq.core.server] HQ222061: Client connection failed, clearing up resources for session 84f7988b-6c15-11e5-afba-b1a14cd26e09
+18:33:49,774 WARN  [org.hornetq.core.server] HQ222107: Cleared up resources for session 84f7988b-6c15-11e5-afba-b1a14cd26e09

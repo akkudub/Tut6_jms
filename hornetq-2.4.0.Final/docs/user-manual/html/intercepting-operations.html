@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><title xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory">Chapter 47. Intercepting Operations</title><link rel="stylesheet" href="css/jbossorg.css" type="text/css"/><meta xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" name="generator" content="DocBook XSL Stylesheets V1.74.0"/><meta xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" http-equiv="Content-Type" content="text/html; charset=UTF-8"/><link rel="home" href="index.html" title="HornetQ User Manual"/><link rel="up" href="index.html" title="HornetQ User Manual"/><link rel="prev" href="aerogear-integration.html" title="Chapter 46. AeroGear Integration"/><link rel="next" href="interoperability.html" title="Chapter 48. Interoperability"/></head><body><p id="title"><a href="http://www.jboss.org" class="site_href"><strong>JBoss.org</strong></a><a href="http://docs.jboss.org/" class="doc_href"><strong>Community Documentation</strong></a></p><ul class="docnav"><li class="previous"><a accesskey="p" href="aerogear-integration.html"><strong>Prev</strong></a></li><li class="next"><a accesskey="n" href="interoperability.html"><strong>Next</strong></a></li></ul><div class="chapter" lang="en"><div class="titlepage"><div><div><h2 class="title"><a id="intercepting-operations"/>Chapter 47. Intercepting Operations</h2></div></div></div><div class="toc"><dl><dt><span class="section"><a href="intercepting-operations.html#d0e13894">47.1. Implementing The Interceptors</a></span></dt><dt><span class="section"><a href="intercepting-operations.html#d0e13919">47.2. Configuring The Interceptors</a></span></dt><dt><span class="section"><a href="intercepting-operations.html#d0e13933">47.3. Interceptors on the Client Side</a></span></dt><dt><span class="section"><a href="intercepting-operations.html#d0e13984">47.4. Example</a></span></dt></dl></div><p>HornetQ supports <span class="emphasis"><em>interceptors</em></span> to intercept packets entering
+       and exiting the server. Incoming and outgoing interceptors are be called for any packet
+       entering or exiting the server respectively. This allows custom code to be executed,
+       e.g. for auditing packets, filtering or other reasons. Interceptors can change the
+       packets they intercept. This makes interceptors powerful, but also potentially
+       dangerous.</p><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title"><a id="d0e13894"/>47.1. Implementing The Interceptors</h2></div></div></div><p>An interceptor must implement the <code class="literal">Interceptor interface</code>:</p><pre xmlns="" xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" class="">
+package org.hornetq.api.core.interceptor;
+
+public interface Interceptor
+{   
+   boolean intercept(Packet packet, RemotingConnection connection) throws HornetQException;
+}</pre><p>The returned boolean value is important:</p><div class="itemizedlist"><ul><li><p>if <code class="literal">true</code> is returned, the process continues normally</p></li><li><p>if <code class="literal">false</code> is returned, the process is aborted, no other interceptors
+                will be called and the packet will not be processed further by the server.</p></li></ul></div></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title"><a id="d0e13919"/>47.2. Configuring The Interceptors</h2></div></div></div><p>Both incoming and outgoing interceptors are configured in
+          <code class="literal">hornetq-configuration.xml</code>:</p><pre xmlns="" xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" class="">
+&lt;remoting-incoming-interceptors&gt;
+   &lt;class-name&gt;org.hornetq.jms.example.LoginInterceptor&lt;/class-name&gt;
+   &lt;class-name&gt;org.hornetq.jms.example.AdditionalPropertyInterceptor&lt;/class-name&gt;
+&lt;/remoting-incoming-interceptors&gt;</pre><pre xmlns="" xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" class="">
+&lt;remoting-outgoing-interceptors&gt;
+   &lt;class-name&gt;org.hornetq.jms.example.LogoutInterceptor&lt;/class-name&gt;
+   &lt;class-name&gt;org.hornetq.jms.example.AdditionalPropertyInterceptor&lt;/class-name&gt;
+&lt;/remoting-outgoing-interceptors&gt;</pre><p>The interceptors classes (and their dependencies) must be added to the server classpath
+         to be properly instantiated and called.</p></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title"><a id="d0e13933"/>47.3. Interceptors on the Client Side</h2></div></div></div><p>The interceptors can also be run on the client side to intercept packets either sent by the
+         client to the server or by the server to the client. This is done by adding the interceptor to
+         the <code class="code">ServerLocator</code> with the <code class="code">addIncomingInterceptor(Interceptor)</code> or
+         <code class="code">addOutgoingInterceptor(Interceptor)</code> methods.</p><p>As noted above, if an interceptor returns <code class="literal">false</code> then the sending of the
+         packet is aborted which means that no other interceptors are be called and the packet is not
+         be processed further by the client. Typically this process happens transparently to the client
+         (i.e. it has no idea if a packet was aborted or not). However, in the case of an outgoing packet
+         that is sent in a <code class="literal">blocking</code> fashion a <code class="literal">HornetQException</code> will
+         be thrown to the caller. The exception is thrown because blocking sends provide reliability and
+         it is considered an error for them not to succeed. <code class="literal">Blocking</code> sends occurs when,
+         for example, an application invokes <code class="literal">setBlockOnNonDurableSend(true)</code> or
+         <code class="literal">setBlockOnDurableSend(true)</code> on its <code class="literal">ServerLocator</code> or if an
+         application is using a JMS connection factory retrieved from JNDI that has either
+         <code class="literal">block-on-durable-send</code> or <code class="literal">block-on-non-durable-send</code>
+         set to <code class="literal">true</code>. Blocking is also used for packets dealing with transactions (e.g.
+         commit, roll-back, etc.). The <code class="literal">HornetQException</code> thrown will contain the name
+         of the interceptor that returned false.</p><p>As on the server, the client interceptor classes (and their dependencies) must be added to the classpath
+         to be properly instantiated and invoked.</p></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title"><a id="d0e13984"/>47.4. Example</h2></div></div></div><p>See <a class="xref" href="examples.html#examples.interceptor" title="11.1.28. Interceptor">Section 11.1.28, “Interceptor”</a> for an example which
+         shows how to use interceptors to add properties to a message on the server.</p></div></div><ul class="docnav"><li class="previous"><a accesskey="p" href="aerogear-integration.html"><strong>Prev</strong>Chapter 46. AeroGear Integration</a></li><li class="up"><a accesskey="u" href="#"><strong>Top of page</strong></a></li><li class="home"><a accesskey="h" href="index.html"><strong>Front page</strong></a></li><li class="next"><a accesskey="n" href="interoperability.html"><strong>Next</strong>Chapter 48. Interoperability</a></li></ul></body></html>

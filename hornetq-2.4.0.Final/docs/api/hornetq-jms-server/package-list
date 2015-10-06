@@ -1,0 +1,16 @@
+org.hornetq.jms.bridge
+org.hornetq.jms.bridge.impl
+org.hornetq.jms.management.impl
+org.hornetq.jms.persistence
+org.hornetq.jms.persistence.config
+org.hornetq.jms.persistence.impl.journal
+org.hornetq.jms.persistence.impl.nullpm
+org.hornetq.jms.server
+org.hornetq.jms.server.config
+org.hornetq.jms.server.config.impl
+org.hornetq.jms.server.embedded
+org.hornetq.jms.server.impl
+org.hornetq.jms.server.management
+org.hornetq.jms.server.management.impl
+org.hornetq.jms.server.recovery
+org.hornetq.jms.transaction

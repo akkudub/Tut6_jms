@@ -1,0 +1,410 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><title xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory">HornetQ QuickStart Guide</title><link rel="stylesheet" href="css/jbossorg.css" type="text/css"/><meta xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" name="generator" content="DocBook XSL Stylesheets V1.74.0"/><meta xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" http-equiv="Content-Type" content="text/html; charset=UTF-8"/><meta xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" name="description" content="This Quickstart guide will help you get HornetQ up and running in a few minutes and will explain the basics needed to get started."/></head><body><div class="book" lang="en"><div class="titlepage"><div><p id="title"><a href="http://www.jboss.org" class="site_href"><strong>JBoss.org</strong></a><a href="http://docs.jboss.org/" class="doc_href"><strong>Community Documentation</strong></a></p><div><h1 class="title"><a id="d0e1"/>HornetQ QuickStart Guide</h1></div><div><h2 class="subtitle">Putting the buzz in messaging</h2></div><div><h3 class="corpauthor">
+    <span class="inlinemediaobject"><img src="images/hornetQ_logo_600px.png" alt="HornetQ Logo"/></span>
+  </h3></div><div><div xmlns="" xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" class="authorgroup"><div class="authors">by <span xmlns="http://www.w3.org/1999/xhtml" class="firstname">Clebert</span> <span xmlns="http://www.w3.org/1999/xhtml" class="surname">Suconic</span> (Red Hat, Inc.), <span xmlns="http://www.w3.org/1999/xhtml" class="firstname">Andy</span> <span xmlns="http://www.w3.org/1999/xhtml" class="surname">Taylor</span> (Red Hat, Inc.), <span xmlns="http://www.w3.org/1999/xhtml" class="firstname">Tim</span> <span xmlns="http://www.w3.org/1999/xhtml" class="surname">Fox</span>, <span xmlns="http://www.w3.org/1999/xhtml" class="firstname">Jeff</span> <span xmlns="http://www.w3.org/1999/xhtml" class="surname">Mesnil</span>, and <span xmlns="http://www.w3.org/1999/xhtml" class="firstname">Howard</span> <span xmlns="http://www.w3.org/1999/xhtml" class="surname">Gao</span> (Red Hat, Inc.)</div><div class="editors"/><div class="others"/></div></div><div><p class="copyright">Copyright © 2011 Red Hat Inc.</p></div><div><div class="abstract"><p class="title"><b>Abstract</b></p><p>This Quickstart guide will help you get HornetQ up and running in a few minutes and will explain the basics needed
+    to get started.</p></div></div></div><hr/></div><div class="toc"><dl><dt><span class="chapter"><a href="#notice">1. Legal Notice</a></span></dt><dt><span class="chapter"><a href="#about">2. About HornetQ</a></span></dt><dt><span class="chapter"><a href="#introduction">3. Getting Started</a></span></dt><dt><span class="chapter"><a href="#download">4. Download</a></span></dt><dd><dl><dt><span class="section"><a href="#download.software">4.1. Software Download</a></span></dt><dt><span class="section"><a href="#download.git">4.2. Project Information</a></span></dt></dl></dd><dt><span class="chapter"><a href="#installation">5. Installation</a></span></dt><dd><dl><dt><span class="section"><a href="#installation.prerequisites">5.1. Prerequisites</a></span></dt><dt><span class="section"><a href="#installation.standalone">5.2. Stand-alone HornetQ Server</a></span></dt></dl></dd><dt><span class="chapter"><a href="#running">6. Starting The Server</a></span></dt><dd><dl><dt><span class="section"><a href="#running.standalone">6.1. Standalone HornetQ</a></span></dt><dt><span class="section"><a href="#running.jboss.Wildfly">6.2. HornetQ In Wildfly</a></span></dt></dl></dd><dt><span class="chapter"><a href="#examples">7. Running the Examples</a></span></dt><dd><dl><dt><span class="section"><a href="#examples.jms">7.1. The JMS examples</a></span></dt><dt><span class="section"><a href="#examples.messaging">7.2. The Java EE Examples</a></span></dt></dl></dd></dl></div><div class="chapter" lang="en"><div class="titlepage"><div><div><h2 class="title"><a id="notice"/>Chapter 1. Legal Notice</h2></div></div></div><p>Copyright © 2010 Red Hat, Inc. and others.</p><p>The text of and illustrations in this document are licensed by Red Hat under
+            a Creative Commons Attribution–Share Alike 3.0 Unported license ("CC-BY-SA").</p><p>An explanation of CC-BY-SA is available at 
+            <a class="ulink" href="http://creativecommons.org/licenses/by-sa/3.0/">http://creativecommons.org/licenses/by-sa/3.0/</a>. 
+            In accordance with CC-BY-SA, if you distribute this document or an adaptation
+            of it, you must provide the URL for the original version.</p><p>Red Hat, as the licensor of this document, waives the right to enforce, 
+            and agrees not to assert, Section 4d of CC-BY-SA to the fullest extent 
+            permitted by applicable law.</p></div><div class="chapter" lang="en"><div class="titlepage"><div><div><h2 class="title"><a id="about"/>Chapter 2. About HornetQ</h2></div></div></div><p>What is HornetQ?</p><div class="itemizedlist"><ul><li><p>HornetQ is an open source project to build a multi-protocol, embeddable, very high
+                performance, clustered, asynchronous messaging system.</p></li><li><p>For answers to more questions about what HornetQ is and what it isn't please visit
+                the <a class="ulink" href="http://www.jboss.org/community/wiki/HornetQGeneralFAQs">FAQs wiki
+                    page</a>.</p></li></ul></div><p>Why use HornetQ? Here are just a few of the reasons:</p><div class="itemizedlist"><ul><li><p>100% open source software. HornetQ is licenced using the Apache Software License v2.0
+                to minimise barriers to adoption.</p></li><li><p>HornetQ is designed with usability in mind.</p></li><li><p>Written in Java. Runs on any platform with a Java 6+ runtime, that's everything
+                from Windows desktops to IBM mainframes.</p></li><li><p>Amazing performance. Our class beating high performance journal provides persistent
+                messaging performance at rates normally seen for non persistent messaging, our non
+                persistent messaging performance rocks the boat too.</p></li><li><p>Full feature set. All the features you'd expect in any serious messaging system,
+                and others you won't find anywhere else.</p></li><li><p>Elegant, clean-cut design with minimal third party dependencies. Run HornetQ
+                stand-alone, run it in integrated in your favourite JEE application server, or run
+                it embedded inside your own product. It's up to you.</p></li><li><p>Seamless high availability. We provide a HA solution with automatic client
+                failover so you can guarantee zero message loss or duplication in event of server
+                failure.</p></li><li><p>Hugely flexible clustering. Create clusters of servers that know how to load
+                balance messages. Link geographically distributed clusters over unreliable
+                connections to form a global network. Configure routing of messages in a highly
+                flexible way.</p></li><li><p>For a full list of features, please see the <a class="ulink" href="http://www.jboss.org/community/wiki/HornetQFeatures">features wiki
+                page</a> .</p></li></ul></div></div><div class="chapter" lang="en"><div class="titlepage"><div><div><h2 class="title"><a id="introduction"/>Chapter 3. Getting Started</h2></div></div></div><p>This short guide explains how to download, install and quickly get started with
+        HornetQ.</p><p>After downloading and installing we highly recommend you run the examples to get
+        acquainted with HornetQ. We ship with over 70 examples demonstrating most of the
+        features.</p><p>This guide is not intended to be a replacement for the user manual. The user manual goes
+        into much more depth, so please consult that for further information.</p></div><div class="chapter" lang="en"><div class="titlepage"><div><div><h2 class="title"><a id="download"/>Chapter 4. Download</h2></div></div></div><div class="toc"><dl><dt><span class="section"><a href="#download.software">4.1. Software Download</a></span></dt><dt><span class="section"><a href="#download.git">4.2. Project Information</a></span></dt></dl></div><p>The official HornetQ project page is <a class="ulink" href="http://hornetq.org/">http://hornetq.org/</a>.</p><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title"><a id="download.software"/>4.1. Software Download</h2></div></div></div><p>The software can be download from the Download page:<a class="ulink" href="http://hornetq.org/downloads.html">http://hornetq.org/downloads.html</a></p></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title"><a id="download.git"/>4.2. Project Information</h2></div></div></div><p>
+         </p><div class="itemizedlist"><ul><li><p>Please take a look at our project <a class="ulink" href="http://www.jboss.org/community/wiki/HornetQ">wiki</a></p></li><li><p>If you have any user questions please use our <a class="ulink" href="https://community.jboss.org/en/hornetq">user
+                     forum</a></p></li><li><p>If you have development related questions, please use our <a class="ulink" href="http://www.jboss.org/index.html?module=bb&amp;op=viewforum&amp;f=313">developer forum</a></p></li><li><p>Pop in and chat to us in our <a class="ulink" href="irc://irc.freenode.net:6667/hornetq">IRC channel</a></p></li><li><p>Our project <a class="ulink" href="http://hornetq.blogspot.com/">blog</a></p></li><li><p>Follow us on <a class="ulink" href="http://twitter.com/hornetq">twitter</a></p></li><li><p>HornetQ Git repository is <a class="ulink" href="https://github.com/hornetq/hornetq">https://github.com/hornetq/hornetq</a></p></li><li><p>All release tags are available from <a class="ulink" href="https://github.com/hornetq/hornetq/tags">https://github.com/hornetq/hornetq/tags</a></p></li></ul></div><p>
+      </p></div></div><div class="chapter" lang="en"><div class="titlepage"><div><div><h2 class="title"><a id="installation"/>Chapter 5. Installation</h2></div></div></div><div class="toc"><dl><dt><span class="section"><a href="#installation.prerequisites">5.1. Prerequisites</a></span></dt><dt><span class="section"><a href="#installation.standalone">5.2. Stand-alone HornetQ Server</a></span></dt></dl></div><p>This section describes how to install HornetQ. </p><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title"><a id="installation.prerequisites"/>5.1. Prerequisites</h2></div></div></div><div xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" class="note"><h2>Note</h2><p>HornetQ only runs on Java 7 or later.</p></div><p>By default, HornetQ server runs with 1GiB of memory. If your computer has less memory,
+         or you want to run it with more available RAM, modify the value in <code class="literal">bin/run.sh</code> accordingly.</p><p>For persistence, HornetQ uses its own fast journal, which you can configure to use
+         libaio (which is the default when running on Linux) or Java NIO. In order to use the libaio
+         module on Linux, you'll need to install libaio, if it's not already installed.</p><p>If you're not running on Linux then you don't need to worry about this.</p><p>You can install libaio using the following steps as the root user:</p><p>Using yum, (e.g. on Fedora or Red Hat Enterprise Linux):</p><pre xmlns="" xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" class="">yum install libaio</pre><p>Using aptitude, (e.g. on Ubuntu or Debian system):</p><pre xmlns="" xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" class="">apt-get install libaio</pre></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title"><a id="installation.standalone"/>5.2. Stand-alone HornetQ Server</h2></div></div></div><p>After downloading the distribution, unzip it into your chosen directory. At this point
+         it should be possible to <a class="link" href="#running.standalone" title="6.1. Standalone HornetQ">run straight out of the
+            box</a>, the following describes the directory structure: </p><pre xmlns="" xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" class="">
+         |___ bin
+         |
+         |___ config
+         |      |___ jboss-as-4
+         |      |___ jboss-as-5
+         |      |___ stand-alone
+         |
+         |___ docs
+         |      |___ api
+         |      |___ quickstart-guide
+         |      |___ user-manual
+         |
+         |___ examples
+         |      |___ core
+         |      |___ javaee
+         |      |___ jms
+         |
+         |___ lib
+         |
+         |___ licenses
+         |
+         |___ schemas
+      </pre><div class="itemizedlist"><ul><li><p><code class="literal">bin</code> -- binaries and scripts needed to run HornetQ.</p></li><li><p><code class="literal">config</code> -- configuration files needed to configure HornetQ. This
+               contains configurations to run HornetQ either in stand-alone or inside JBoss AS 4 and 5.
+               Please refer to the reference guide for details on configuration. </p></li><li><p><code class="literal">docs</code> -- guides and javadocs for HornetQ </p></li><li><p><code class="literal">examples</code> -- JMS and Java EE examples. Please refer to the
+               'running examples' chapter for details on how to run them. </p></li><li><p><code class="literal">lib</code> -- jars and libraries needed to run HornetQ </p></li><li><p><code class="literal">licenses</code> -- licenses for HornetQ </p></li><li><p><code class="literal">schemas</code> -- XML Schemas used to validate HornetQ configuration
+               files</p></li></ul></div></div></div><div class="chapter" lang="en"><div class="titlepage"><div><div><h2 class="title"><a id="running"/>Chapter 6. Starting The Server</h2></div></div></div><div class="toc"><dl><dt><span class="section"><a href="#running.standalone">6.1. Standalone HornetQ</a></span></dt><dt><span class="section"><a href="#running.jboss.Wildfly">6.2. HornetQ In Wildfly</a></span></dt></dl></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title"><a id="running.standalone"/>6.1. Standalone HornetQ</h2></div></div></div><p>To run a stand-alone server, open up a shell or command prompt and navigate into the
+            <code class="literal">bin</code> directory. Then execute <code class="literal">./run.sh</code> (or <code class="literal">run.bat</code> on Windows) and you should see the following output </p><pre xmlns="" xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" class="">
+         bin$ ./run.sh
+         
+         15:05:54,108 INFO  @main [HornetQBootstrapServer] Starting HornetQ server
+         ...
+         15:06:02,566 INFO  @main [HornetQServerImpl] HornetQ Server version 
+         2.0.0.CR3 (yellowjacket, 111) started
+      </pre><p>HornetQ is now running.</p><p>Both the run and the stop scripts use the config under <code class="literal">config/stand-alone/non-clustered</code> by default. The configuration can be changed
+         by running <code class="literal">./run.sh ../config/stand-alone/clustered</code> or another config of
+         your choosing. This is the same for the stop script and the windows bat files.</p></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title"><a id="running.jboss.Wildfly"/>6.2. HornetQ In Wildfly</h2></div></div></div><p>HornetQ is the Default Messaging Provider in the <a class="ulink" href="http://www.wildfly.org/">Wildfly Application Server</a>
+      To run the server you need to run the standalone-full.xml configuration by running the command './standalone.sh -c standalone-full.xml'.
+          You will see something like:/</p><pre xmlns="" xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" class="">
+        bin$ ./standalone.sh -c standalone-full.xml
+          =========================================================================
+
+          JBoss Bootstrap Environment
+
+          JBOSS_HOME: /home/andy/projects/wildfly/build/target/wildfly-8.0.0.Beta1-SNAPSHOT
+
+          JAVA: java
+
+          JAVA_OPTS:  -server -XX:+UseCompressedOops -Xms64m -Xmx512m -XX:MaxPermSize=256m -Djava.net.preferIPv4Stack=true -Djboss.modules.system.pkgs=org.jboss.byteman -Djava.awt.headless=true
+
+          =========================================================================
+
+          14:47:33,642 INFO  [org.jboss.modules] (main) JBoss Modules version 1.3.0.Final
+          14:47:34,780 INFO  [org.jboss.msc] (main) JBoss MSC version 1.2.0.Beta2
+          14:47:34,875 INFO  [org.jboss.as] (MSC service thread 1-6) JBAS015899: WildFly 8.0.0.Beta1-SNAPSHOT "WildFly" starting
+          14:47:40,382 INFO  [org.jboss.as.server] (Controller Boot Thread) JBAS015888: Creating http management service using socket-binding (management-http)
+          14:47:40,383 INFO  [org.xnio] (MSC service thread 1-15) XNIO version 3.1.0.CR7
+          14:47:40,402 INFO  [org.xnio.nio] (MSC service thread 1-15) XNIO NIO Implementation Version 3.1.0.CR7
+          14:47:40,488 INFO  [org.jboss.remoting] (MSC service thread 1-15) JBoss Remoting version 4.0.0.Beta1
+          14:47:40,547 INFO  [org.jboss.as.clustering.infinispan] (ServerService Thread Pool -- 36) JBAS010280: Activating Infinispan subsystem.
+          14:47:40,560 INFO  [org.jboss.as.naming] (ServerService Thread Pool -- 47) JBAS011800: Activating Naming Subsystem
+          14:47:40,560 INFO  [org.jboss.as.security] (ServerService Thread Pool -- 52) JBAS013171: Activating Security Subsystem
+          14:47:40,567 INFO  [org.jboss.as.jacorb] (ServerService Thread Pool -- 37) JBAS016300: Activating JacORB Subsystem
+          14:47:40,571 INFO  [org.jboss.as.jsf] (ServerService Thread Pool -- 43) JBAS012605: Activated the following JSF Implementations: [main]
+          14:47:40,574 INFO  [org.jboss.as.webservices] (ServerService Thread Pool -- 56) JBAS015537: Activating WebServices Extension
+          14:47:40,721 INFO  [org.jboss.as.connector.logging] (MSC service thread 1-6) JBAS010408: Starting JCA Subsystem (IronJacamar 1.1.0.Final)
+          14:47:41,321 INFO  [org.jboss.as.naming] (MSC service thread 1-4) JBAS011802: Starting Naming Service
+          14:47:41,323 INFO  [org.jboss.as.mail.extension] (MSC service thread 1-11) JBAS015400: Bound mail session [java:jboss/mail/Default]
+          14:47:41,552 INFO  [org.wildfly.extension.undertow] (MSC service thread 1-10) JBAS017502: Undertow 1.0.0.Beta16 starting
+          14:47:41,552 INFO  [org.wildfly.extension.undertow] (ServerService Thread Pool -- 55) JBAS017502: Undertow 1.0.0.Beta16 starting
+          14:47:41,573 INFO  [org.jboss.as.security] (MSC service thread 1-6) JBAS013170: Current PicketBox version=4.0.17.SP1
+          14:47:41,775 INFO  [org.jboss.as.connector.subsystems.datasources] (ServerService Thread Pool -- 31) JBAS010403: Deploying JDBC-compliant driver class org.h2.Driver (version 1.3)
+          14:47:41,777 INFO  [org.jboss.as.connector.deployers.jdbc] (MSC service thread 1-16) JBAS010417: Started Driver service with driver-name = h2
+          14:47:42,085 INFO  [org.wildfly.extension.undertow] (ServerService Thread Pool -- 55) JBAS017527: Creating file handler for path /home/andy/projects/wildfly/build/target/wildfly-8.0.0.Beta1-SNAPSHOT/welcome-content
+          14:47:42,086 INFO  [org.wildfly.extension.undertow] (MSC service thread 1-2) JBAS017525: Started server default-server.
+          14:47:42,088 INFO  [org.wildfly.extension.undertow] (MSC service thread 1-13) JBAS017531: Host default-host starting
+          14:47:42,471 INFO  [org.wildfly.extension.undertow] (MSC service thread 1-7) JBAS017519: Undertow HTTP listener default listening on /127.0.0.1:8080
+          14:47:42,823 INFO  [org.jboss.as.server.deployment.scanner] (MSC service thread 1-10) JBAS015012: Started FileSystemDeploymentService for directory /home/andy/projects/wildfly/build/target/wildfly-8.0.0.Beta1-SNAPSHOT/standalone/deployments
+          14:47:42,882 INFO  [org.jboss.as.remoting] (MSC service thread 1-16) JBAS017100: Listening on 127.0.0.1:9999
+          14:47:43,037 INFO  [org.hornetq.core.server] (ServerService Thread Pool -- 58) HQ221000: live server is starting with configuration HornetQ Configuration (clustered=false,backup=false,sharedStore=true,journalDirectory=/home/andy/projects/wildfly/build/target/wildfly-8.0.0.Beta1-SNAPSHOT/standalone/data/messagingjournal,bindingsDirectory=/home/andy/projects/wildfly/build/target/wildfly-8.0.0.Beta1-SNAPSHOT/standalone/data/messagingbindings,largeMessagesDirectory=/home/andy/projects/wildfly/build/target/wildfly-8.0.0.Beta1-SNAPSHOT/standalone/data/messaginglargemessages,pagingDirectory=/home/andy/projects/wildfly/build/target/wildfly-8.0.0.Beta1-SNAPSHOT/standalone/data/messagingpaging)
+          14:47:43,062 INFO  [org.hornetq.core.server] (ServerService Thread Pool -- 58) HQ221006: Waiting to obtain live lock
+          14:47:43,103 INFO  [org.hornetq.core.server] (ServerService Thread Pool -- 58) HQ221012: Using AIO Journal
+          14:47:43,313 INFO  [org.hornetq.core.server] (ServerService Thread Pool -- 58) HQ224067: Adding protocol support CORE
+          14:47:43,426 INFO  [org.jboss.ws.common.management] (MSC service thread 1-3) JBWS022052: Starting JBoss Web Services - Stack CXF Server 4.2.1.Final
+          14:47:43,448 INFO  [org.hornetq.core.server] (ServerService Thread Pool -- 58) HQ224067: Adding protocol support AMQP
+          14:47:43,451 INFO  [org.hornetq.core.server] (ServerService Thread Pool -- 58) HQ224067: Adding protocol support STOMP
+          14:47:43,453 INFO  [org.hornetq.core.server] (ServerService Thread Pool -- 58) HQ224067: Adding protocol support STOMP_WS
+          14:47:43,567 INFO  [org.hornetq.core.server] (ServerService Thread Pool -- 58) HQ221034: Waiting to obtain live lock
+          14:47:43,567 INFO  [org.hornetq.core.server] (ServerService Thread Pool -- 58) HQ221035: Live Server Obtained live lock
+          14:47:43,777 INFO  [org.jboss.as.connector.subsystems.datasources] (MSC service thread 1-8) JBAS010400: Bound data source [java:jboss/datasources/ExampleDS]
+          14:47:43,781 INFO  [org.jboss.as.jacorb] (MSC service thread 1-1) JBAS016330: CORBA ORB Service started
+          14:47:44,115 INFO  [org.jboss.as.jacorb] (MSC service thread 1-13) JBAS016328: CORBA Naming Service started
+          14:47:44,345 INFO  [org.wildfly.extension.undertow] (MSC service thread 1-3) JBAS018210: Register web context: /hornetq-server
+          14:47:44,361 INFO  [org.hornetq.core.server] (ServerService Thread Pool -- 58) HQ221020: Started Netty Acceptor version 3.6.6.Final-90e1eb2 127.0.0.1:5455 for CORE protocol
+          14:47:44,362 INFO  [org.hornetq.core.server] (ServerService Thread Pool -- 58) HQ221020: Started Netty Acceptor version 3.6.6.Final-90e1eb2 127.0.0.1:5445 for CORE protocol
+          14:47:44,364 INFO  [org.hornetq.core.server] (ServerService Thread Pool -- 58) HQ221020: Started Netty Acceptor version 3.6.6.Final-90e1eb2 org.hornetq.default.servlet:5445 for CORE protocol
+          14:47:44,366 INFO  [org.hornetq.core.server] (ServerService Thread Pool -- 58) HQ221007: Server is now live
+          14:47:44,366 INFO  [org.hornetq.core.server] (ServerService Thread Pool -- 58) HQ221001: HornetQ Server version 2.4.0.Beta2 (Andromedian Flyer, 123) [bcc1cd10-2bfb-11e3-ad5f-9f88840f9e1a]
+          14:47:44,435 INFO  [org.jboss.as.messaging] (ServerService Thread Pool -- 58) JBAS011601: Bound messaging object to jndi name java:/ConnectionFactory
+          14:47:44,437 INFO  [org.jboss.as.messaging] (ServerService Thread Pool -- 59) JBAS011601: Bound messaging object to jndi name java:jboss/exported/jms/ServletConnectionFactory
+          14:47:44,439 INFO  [org.jboss.as.messaging] (ServerService Thread Pool -- 60) JBAS011601: Bound messaging object to jndi name java:jboss/exported/jms/RemoteConnectionFactory
+          14:47:44,462 INFO  [org.jboss.as.connector.deployment] (MSC service thread 1-3) JBAS010406: Registered connection factory java:/JmsXA
+          14:47:44,531 INFO  [org.hornetq.ra] (MSC service thread 1-3) HornetQ resource adaptor started
+          14:47:44,532 INFO  [org.jboss.as.connector.services.resourceadapters.ResourceAdapterActivatorService$ResourceAdapterActivator] (MSC service thread 1-3) IJ020002: Deployed: file://RaActivatorhornetq-ra
+          14:47:44,535 INFO  [org.jboss.as.connector.deployment] (MSC service thread 1-12) JBAS010401: Bound JCA ConnectionFactory [java:/JmsXA]
+          14:47:44,536 INFO  [org.jboss.as.messaging] (MSC service thread 1-15) JBAS011601: Bound messaging object to jndi name java:jboss/DefaultJMSConnectionFactory
+          14:47:44,719 INFO  [org.jboss.as] (Controller Boot Thread) JBAS015961: Http management interface listening on http://127.0.0.1:9990/management
+          14:47:44,720 INFO  [org.jboss.as] (Controller Boot Thread) JBAS015951: Admin console listening on http://127.0.0.1:9990
+          14:47:44,721 INFO  [org.jboss.as] (Controller Boot Thread) JBAS015874: WildFly 8.0.0.Beta1-SNAPSHOT "WildFly" started in 12184ms - Started 213 of 249 services (73 services are lazy, passive or on-demand)
+
+      </pre></div></div><div class="chapter" lang="en"><div class="titlepage"><div><div><h2 class="title"><a id="examples"/>Chapter 7. Running the Examples</h2></div></div></div><div class="toc"><dl><dt><span class="section"><a href="#examples.jms">7.1. The JMS examples</a></span></dt><dt><span class="section"><a href="#examples.messaging">7.2. The Java EE Examples</a></span></dt></dl></div><p>In the directory <code class="literal">examples</code> there are 2 sets of examples, these are </p><div class="itemizedlist"><ul><li><p>JMS Examples - these demonstrate functionality while sending and consumng JMS
+            messages.</p></li><li><p>Java EE Examples - these demonstrate application server integration, e.g. MDBs, EJBs,
+            Servlets, etc.</p></li></ul></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title"><a id="examples.jms"/>7.1. The JMS examples</h2></div></div></div><p>The JMS Examples all follow the same format. Each examples is contained in its own
+         directory which contains the following.</p><div class="itemizedlist"><ul><li><p><code class="literal">pom.xml</code></p><p>This is the Maven build file used to run the example</p></li><li><p><code class="literal">src</code> directory</p><p>This contains the source code for the example</p></li><li><p><code class="literal">resources/hornetq/server0</code> configuration directory</p><p>This contains the configuration files needed to run the server for the example.
+               There may be multiple configuration directories <code class="literal">server0</code>, <code class="literal">server1</code> etc for clustered examples etc.</p></li></ul></div><p>Each example will start one or more stand-alone servers and stop them after the example
+         has completed.</p><p>As a quick start we'll run the queue example. For all other examples refer to the main
+         user manual.</p><p>Firstly open a Shell or a Command prompt and navigate to the <code class="literal">examples/jms/queue</code> directory.</p><p>Type the command <code class="literal">mvn verify</code> and you should see the following output:</p><pre xmlns="" xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" class="">
+
+[INFO] Scanning for projects...
+[INFO]
+[INFO] ------------------------------------------------------------------------
+[INFO] Building HornetQ JMS Queue Example 2.3.0.BETA-SNAPSHOT
+[INFO] ------------------------------------------------------------------------
+[INFO]
+[INFO] --- maven-resources-plugin:2.6:resources (default-resources) @ hornetq-jms-queue-example ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Copying 3 resources
+[INFO]
+[INFO] --- maven-compiler-plugin:3.0:compile (default-compile) @ hornetq-jms-queue-example ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO]
+[INFO] --- maven-resources-plugin:2.6:testResources (default-testResources) @ hornetq-jms-queue-example ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] skip non existing resourceDirectory /home/andy/projects/hornetq-master/examples/jms/queue/src/test/resources
+[INFO]
+[INFO] --- maven-compiler-plugin:3.0:testCompile (default-testCompile) @ hornetq-jms-queue-example ---
+[INFO] No sources to compile
+[INFO]
+[INFO] --- maven-surefire-plugin:2.13:test (default-test) @ hornetq-jms-queue-example ---
+[INFO]
+[INFO] --- maven-jar-plugin:2.4:jar (default-jar) @ hornetq-jms-queue-example ---
+[INFO] Building jar: /home/andy/projects/hornetq-master/examples/jms/queue/target/hornetq-jms-queue-example-2.3.0.BETA-SNAPSHOT.jar
+[INFO]
+[INFO] &gt;&gt;&gt; maven-source-plugin:2.2.1:jar (attach-sources) @ hornetq-jms-queue-example &gt;&gt;&gt;
+[INFO]
+[INFO] &lt;&lt;&lt; maven-source-plugin:2.2.1:jar (attach-sources) @ hornetq-jms-queue-example &lt;&lt;&lt;
+[INFO]
+[INFO] --- maven-source-plugin:2.2.1:jar (attach-sources) @ hornetq-jms-queue-example ---
+[INFO] Building jar: /home/andy/projects/hornetq-master/examples/jms/queue/target/hornetq-jms-queue-example-2.3.0.BETA-SNAPSHOT-sources.jar
+[INFO]
+[INFO] &gt;&gt;&gt; maven-source-plugin:2.2.1:jar (default) @ hornetq-jms-queue-example &gt;&gt;&gt;
+[INFO]
+[INFO] &lt;&lt;&lt; maven-source-plugin:2.2.1:jar (default) @ hornetq-jms-queue-example &lt;&lt;&lt;
+[INFO]
+[INFO] --- maven-source-plugin:2.2.1:jar (default) @ hornetq-jms-queue-example ---
+[WARNING] Artifact org.hornetq.examples.jms:hornetq-jms-queue-example:java-source:sources:2.3.0.BETA-SNAPSHOT already attached to project, ignoring duplicate
+[INFO]
+[INFO] --- hornetq-maven-plugin:1.1.1-SNAPSHOT:start (start) @ hornetq-jms-queue-example ---
+[file:/home/andy/projects/hornetq-master/examples/jms/queue/target/classes/hornetq/server0/]
+Apr 17, 2013 10:51:01 AM org.hornetq.core.deployers.impl.FileConfigurationParser parseMainConfig
+WARN: HQ222018: AIO was not located on this platform, it will fall back to using pure Java NIO. If your platform is Linux, install LibAIO to enable the AIO journal
+Apr 17, 2013 10:51:01 AM org.hornetq.core.server.impl.HornetQServerImpl start
+INFO: HQ221000: live server is starting with configuration HornetQ Configuration (clustered=false,backup=false,sharedStore=true,journalDirectory=/home/andy/projects/hornetq-master/examples/jms/queue/target//server0/data/messaging/journal,bindingsDirectory=/home/andy/projects/hornetq-master/examples/jms/queue/target//server0/data/messaging/bindings,largeMessagesDirectory=/home/andy/projects/hornetq-master/examples/jms/queue/target//server0/data/messaging/largemessages,pagingDirectory=/home/andy/projects/hornetq-master/examples/jms/queue/target//server0/data/messaging/paging)
+Apr 17, 2013 10:51:01 AM org.hornetq.core.server.impl.HornetQServerImpl$SharedStoreLiveActivation run
+INFO: HQ221006: Waiting to obtain live lock
+Apr 17, 2013 10:51:01 AM org.hornetq.core.persistence.impl.journal.JournalStorageManager &lt;init&gt;
+INFO: HQ221013: Using NIO Journal
+Apr 17, 2013 10:51:01 AM org.hornetq.core.server.impl.HornetQServerImpl initialisePart1
+WARN: HQ222007: Security risk! HornetQ is running with the default cluster admin user and default password. Please see the HornetQ user guide, cluster chapter, for instructions on how to change this.
+Apr 17, 2013 10:51:01 AM org.hornetq.core.server.impl.FileLockNodeManager startLiveNode
+INFO: HQ221034: Waiting to obtain live lock
+Apr 17, 2013 10:51:01 AM org.hornetq.core.server.impl.FileLockNodeManager startLiveNode
+INFO: HQ221035: Live Server Obtained live lock
+Apr 17, 2013 10:51:02 AM org.hornetq.core.server.impl.HornetQServerImpl deployQueue
+INFO: HQ221003: trying to deploy queue jms.queue.exampleQueue
+Apr 17, 2013 10:51:02 AM org.hornetq.core.remoting.impl.netty.NettyAcceptor start
+INFO: HQ221020: Started Netty Acceptor version 3.6.2.Final-c0d783c localhost:5445 for CORE protocol
+Apr 17, 2013 10:51:02 AM org.hornetq.core.server.impl.HornetQServerImpl$SharedStoreLiveActivation run
+INFO: HQ221007: Server is now live
+Apr 17, 2013 10:51:02 AM org.hornetq.core.server.impl.HornetQServerImpl start
+INFO: HQ221001: HornetQ Server version 2.3.0.SNAPSHOT (black'n'yellow, 123) [a57893ff-7783-11e2-9787-07ca142fc9f7]
+[INFO]
+[INFO] --- hornetq-maven-plugin:1.1.1-SNAPSHOT:runClient (runClient) @ hornetq-jms-queue-example ---
+Apr 17, 2013 10:51:02 AM org.hornetq.common.example.HornetQExample getContext
+INFO: using jnp://localhost:1099 for jndi
+Sent message: This is a text message
+Received message: This is a text message
+example complete
+
+#####################
+###    SUCCESS!   ###
+#####################
+[INFO]
+[INFO] --- hornetq-maven-plugin:1.1.1-SNAPSHOT:stop (stop) @ hornetq-jms-queue-example ---
+Apr 17, 2013 10:51:03 AM org.hornetq.core.server.management.impl.ManagementServiceImpl stop
+WARN: HQ222113: On ManagementService stop, there are 1 unexpected registered MBeans: [core.acceptor.netty-acceptor]
+Apr 17, 2013 10:51:03 AM org.hornetq.core.server.impl.HornetQServerImpl stop
+INFO: HQ221002: HornetQ Server version 2.3.0.SNAPSHOT (black'n'yellow, 123) [a57893ff-7783-11e2-9787-07ca142fc9f7] stopped
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time: 4.428s
+[INFO] Finished at: Wed Apr 17 10:51:03 BST 2013
+[INFO] Final Memory: 11M/456M
+[INFO] ------------------------------------------------------------------------
+
+</pre><p>Congratulations! You have successfully run your first HornetQ example. Try some of the
+         others.</p></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title"><a id="examples.messaging"/>7.2. The Java EE Examples</h2></div></div></div><p>The Java EE Examples are examples that require a JEE application server to run. They
+         include MDB, Servlet, EJB examples etc. For this you will need the JBoss Application Server 7.1.x
+         installed and uses Arquillian to run the example. How to do this is explained in the previous chapters.</p><p>We'll use the MDB example for the purposes of this guide. For the other examples refer
+         to the user guide. Before going any further ensure that the JBoss Application Server is
+         running.</p><p> The first thing we need to do is set the <code class="literal">JBOSS_HOME</code> environment property to the location of the JBoss
+         Application Server, in a Linux shell this would be something like:</p><pre xmlns="" xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" class="">export JBOSS_HOME=/home/jbossas7.1/build/output/jboss-7.1.0</pre><p>Yoy can then run the example via maven by running <code class="literal">mvn test</code></p><p>In the shell window you should see something like the following output:</p><pre xmlns="" xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" class="">
+[INFO] Scanning for projects...
+[INFO]
+[INFO] ------------------------------------------------------------------------
+[INFO] Building HornetQ JEE MDB Example 2.3.0.BETA-SNAPSHOT
+[INFO] ------------------------------------------------------------------------
+[INFO]
+[INFO] --- maven-resources-plugin:2.6:resources (default-resources) @ hornetq-jee-mdb-bmt-example ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] skip non existing resourceDirectory /home/andy/projects/hornetq-master/examples/javaee/mdb-bmt/src/main/resources
+[INFO]
+[INFO] --- maven-compiler-plugin:3.0:compile (default-compile) @ hornetq-jee-mdb-bmt-example ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO]
+[INFO] --- maven-resources-plugin:2.6:copy-resources (as-node-0) @ hornetq-jee-mdb-bmt-example ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Copying 1112 resources
+[INFO] Copying 5 resources
+[INFO]
+[INFO] --- maven-resources-plugin:2.6:testResources (default-testResources) @ hornetq-jee-mdb-bmt-example ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Copying 1 resource
+[INFO]
+[INFO] --- maven-compiler-plugin:3.0:testCompile (default-testCompile) @ hornetq-jee-mdb-bmt-example ---
+[INFO] Changes detected - recompiling the module!
+[INFO] Compiling 1 source file to /home/andy/projects/hornetq-master/examples/javaee/mdb-bmt/target/test-classes
+[INFO]
+[INFO] --- maven-surefire-plugin:2.12:test (default-test) @ hornetq-jee-mdb-bmt-example ---
+[INFO] Surefire report directory: /home/andy/projects/hornetq-master/examples/javaee/mdb-bmt/target/surefire-reports
+
+-------------------------------------------------------
+ T E S T S
+-------------------------------------------------------
+Running org.hornetq.javaee.example.server.ExampleRunnerTest
+log4j:WARN No appenders could be found for logger (org.jboss.logging).
+log4j:WARN Please initialize the log4j system properly.
+log4j:WARN See http://logging.apache.org/log4j/1.2/faq.html#noconfig for more info.
+Apr 17, 2013 10:58:04 AM org.jboss.arquillian.container.impl.MapObject populate
+WARNING: Configuration contain properties not supported by the backing object org.jboss.as.arquillian.container.managed.ManagedContainerConfiguration
+Unused property entries: {waitForPortsTimeoutInSeconds=8, waitForPorts=8787 9999}
+Supported property names: [jbossHome, outputToConsole, enableAssertions, password, managementPort, javaHome, javaVmArguments, username, serverConfig, allowConnectingToRunningServer, managementAddress, startupTimeoutInSeconds, modulePath]
+Apr 17, 2013 10:58:04 AM org.jboss.as.arquillian.container.managed.ManagedDeployableContainer startInternal
+INFO: Starting container with: [/home/andy/devtools/jdk1.6.0_25//bin/java, -Djboss.inst=/home/andy/projects/hornetq-master/examples/javaee/mdb-bmt/target/jbossas-node0, -ea, -Djboss.home.dir=/home/andy/projects/hornetq-master/examples/javaee/mdb-bmt/target/jbossas-node0, -Dorg.jboss.boot.log.file=/home/andy/projects/hornetq-master/examples/javaee/mdb-bmt/target/jbossas-node0/standalone/log/boot.log, -Dlogging.configuration=file:/home/andy/projects/hornetq-master/examples/javaee/mdb-bmt/target/jbossas-node0/standalone/configuration/logging.properties, -Djboss.modules.dir=/home/andy/projects/hornetq-master/examples/javaee/mdb-bmt/target/jbossas-node0/modules, -Djboss.bundles.dir=/home/andy/projects/hornetq-master/examples/javaee/mdb-bmt/target/jbossas-node0/bundles, -jar, /home/andy/projects/hornetq-master/examples/javaee/mdb-bmt/target/jbossas-node0/jboss-modules.jar, -mp, /home/andy/projects/hornetq-master/examples/javaee/mdb-bmt/target/jbossas-node0/modules, -jaxpmodule, javax.xml.jaxp-provider, org.jboss.as.standalone, -server-config, standalone-example.xml]
+10:58:04,525 INFO  [org.jboss.modules] JBoss Modules version 1.1.1.GA
+10:58:04,664 INFO  [org.jboss.msc] JBoss MSC version 1.0.2.GA
+10:58:04,703 INFO  [org.jboss.as] JBAS015899: JBoss AS 7.1.1.Final "Brontes" starting
+10:58:05,492 INFO  [org.xnio] XNIO Version 3.0.3.GA
+10:58:05,494 INFO  [org.jboss.as.server] JBAS015888: Creating http management service using socket-binding (management-http)
+10:58:05,502 INFO  [org.xnio.nio] XNIO NIO Implementation Version 3.0.3.GA
+10:58:05,509 INFO  [org.jboss.remoting] JBoss Remoting version 3.2.3.GA
+10:58:05,527 INFO  [org.jboss.as.logging] JBAS011502: Removing bootstrap log handlers
+10:58:05,530 INFO  [org.jboss.as.configadmin] (ServerService Thread Pool -- 32) JBAS016200: Activating ConfigAdmin Subsystem
+10:58:05,560 INFO  [org.jboss.as.clustering.infinispan] (ServerService Thread Pool -- 37) JBAS010280: Activating Infinispan subsystem.
+10:58:05,562 INFO  [org.jboss.as.connector.subsystems.datasources] (ServerService Thread Pool -- 33) JBAS010403: Deploying JDBC-compliant driver class org.h2.Driver (version 1.3)
+10:58:05,573 INFO  [org.jboss.as.jacorb] (ServerService Thread Pool -- 38) JBAS016300: Activating JacORB Subsystem
+10:58:05,595 INFO  [org.jboss.as.connector] (MSC service thread 1-12) JBAS010408: Starting JCA Subsystem (JBoss IronJacamar 1.0.9.Final)
+10:58:05,612 INFO  [org.jboss.as.naming] (ServerService Thread Pool -- 48) JBAS011800: Activating Naming Subsystem
+10:58:05,625 INFO  [org.jboss.as.osgi] (ServerService Thread Pool -- 49) JBAS011940: Activating OSGi Subsystem
+10:58:05,649 INFO  [org.jboss.as.security] (ServerService Thread Pool -- 54) JBAS013101: Activating Security Subsystem
+10:58:05,657 INFO  [org.jboss.as.naming] (MSC service thread 1-8) JBAS011802: Starting Naming Service
+10:58:05,663 INFO  [org.jboss.as.mail.extension] (MSC service thread 1-16) JBAS015400: Bound mail session [java:jboss/mail/Default]
+10:58:05,675 INFO  [org.jboss.as.security] (MSC service thread 1-14) JBAS013100: Current PicketBox version=4.0.7.Final
+10:58:05,683 INFO  [org.jboss.as.webservices] (ServerService Thread Pool -- 58) JBAS015537: Activating WebServices Extension
+10:58:05,705 INFO  [org.jboss.jaxr] (MSC service thread 1-8) JBAS014000: Started JAXR subsystem, binding JAXR connection factory into JNDI as: java:jboss/jaxr/ConnectionFactory
+10:58:05,831 INFO  [org.jboss.ws.common.management.AbstractServerConfig] (MSC service thread 1-4) JBoss Web Services - Stack CXF Server 4.0.2.GA
+10:58:05,943 INFO  [org.apache.coyote.http11.Http11Protocol] (MSC service thread 1-6) Starting Coyote HTTP/1.1 on http-localhost.localdomain-127.0.0.1-8080
+10:58:05,966 INFO  [org.jboss.as.jacorb] (MSC service thread 1-2) JBAS016330: CORBA ORB Service started
+10:58:05,988 INFO  [org.hornetq.core.server.impl.HornetQServerImpl] (MSC service thread 1-11) live server is starting with configuration HornetQ Configuration (clustered=false,backup=false,sharedStore=true,journalDirectory=/home/andy/projects/hornetq-master/examples/javaee/mdb-bmt/target/jbossas-node0/standalone/data/messagingjournal,bindingsDirectory=/home/andy/projects/hornetq-master/examples/javaee/mdb-bmt/target/jbossas-node0/standalone/data/messagingbindings,largeMessagesDirectory=/home/andy/projects/hornetq-master/examples/javaee/mdb-bmt/target/jbossas-node0/standalone/data/messaginglargemessages,pagingDirectory=/home/andy/projects/hornetq-master/examples/javaee/mdb-bmt/target/jbossas-node0/standalone/data/messagingpaging)
+10:58:05,996 INFO  [org.hornetq.core.server.impl.HornetQServerImpl] (MSC service thread 1-11) Waiting to obtain live lock
+10:58:06,037 INFO  [org.hornetq.core.persistence.impl.journal.JournalStorageManager] (MSC service thread 1-11) Using AIO Journal
+10:58:06,122 INFO  [org.jboss.as.jacorb] (MSC service thread 1-14) JBAS016328: CORBA Naming Service started
+10:58:06,184 INFO  [org.jboss.as.connector.subsystems.datasources] (MSC service thread 1-7) JBAS010400: Bound data source [java:jboss/datasources/ExampleDS]
+10:58:06,204 INFO  [org.hornetq.core.server.impl.AIOFileLockNodeManager] (MSC service thread 1-11) Waiting to obtain live lock
+10:58:06,205 INFO  [org.hornetq.core.server.impl.AIOFileLockNodeManager] (MSC service thread 1-11) Live Server Obtained live lock
+10:58:06,434 INFO  [org.jboss.as.remoting] (MSC service thread 1-2) JBAS017100: Listening on localhost.localdomain/127.0.0.1:4447
+10:58:06,434 INFO  [org.jboss.as.remoting] (MSC service thread 1-15) JBAS017100: Listening on /127.0.0.1:9999
+10:58:06,436 INFO  [org.jboss.as.server.deployment.scanner] (MSC service thread 1-16) JBAS015012: Started FileSystemDeploymentService for directory /home/andy/projects/hornetq-master/examples/javaee/mdb-bmt/target/jbossas-node0/standalone/deployments
+10:58:08,790 INFO  [org.hornetq.core.remoting.impl.netty.NettyAcceptor] (MSC service thread 1-11) Started Netty Acceptor version 3.2.5.Final-a96d88c localhost.localdomain:5445 for CORE protocol
+10:58:08,793 INFO  [org.hornetq.core.remoting.impl.netty.NettyAcceptor] (MSC service thread 1-11) Started Netty Acceptor version 3.2.5.Final-a96d88c localhost.localdomain:5455 for CORE protocol
+10:58:08,795 INFO  [org.hornetq.core.server.impl.HornetQServerImpl] (MSC service thread 1-11) Server is now live
+10:58:08,797 INFO  [org.hornetq.core.server.impl.HornetQServerImpl] (MSC service thread 1-11) HornetQ Server version 2.2.13.Final (HQ_2_2_13_FINAL_AS7, 122) [5c499e88-9c63-11e2-bfa3-fe5400591699]) started
+10:58:08,822 INFO  [org.jboss.as.messaging] (MSC service thread 1-4) JBAS011601: Bound messaging object to jndi name java:jboss/exported/jms/RemoteConnectionFactory
+10:58:08,824 INFO  [org.jboss.as.messaging] (MSC service thread 1-4) JBAS011601: Bound messaging object to jndi name java:/RemoteConnectionFactory
+10:58:08,825 INFO  [org.jboss.as.messaging] (MSC service thread 1-10) JBAS011601: Bound messaging object to jndi name java:/ConnectionFactory
+10:58:08,830 INFO  [org.hornetq.core.server.impl.HornetQServerImpl] (MSC service thread 1-3) trying to deploy queue jms.queue.testQueue
+10:58:08,836 INFO  [org.jboss.as.messaging] (MSC service thread 1-3) JBAS011601: Bound messaging object to jndi name java:/queue/test
+10:58:08,840 INFO  [org.jboss.as.messaging] (MSC service thread 1-3) JBAS011601: Bound messaging object to jndi name java:jboss/exported/jms/queues/testQueue
+10:58:08,859 INFO  [org.jboss.as.deployment.connector] (MSC service thread 1-9) JBAS010406: Registered connection factory java:/JmsXA
+10:58:08,866 INFO  [org.hornetq.ra.HornetQResourceAdapter] (MSC service thread 1-9) HornetQ resource adaptor started
+10:58:08,867 INFO  [org.jboss.as.connector.services.ResourceAdapterActivatorService$ResourceAdapterActivator] (MSC service thread 1-9) IJ020002: Deployed: file://RaActivatorhornetq-ra
+10:58:08,870 INFO  [org.jboss.as.deployment.connector] (MSC service thread 1-5) JBAS010401: Bound JCA ConnectionFactory [java:/JmsXA]
+10:58:08,898 INFO  [org.jboss.as.server.deployment] (MSC service thread 1-10) JBAS015876: Starting deployment of "ONT001-1.0.war"
+10:58:09,146 INFO  [org.jboss.wsf.stack.cxf.metadata.MetadataBuilder] (MSC service thread 1-1) Add Service
+ id=com.hpm.webservices.BasicWSImpl
+ address=http://localhost:8080/hpm/BasicWService
+ implementor=com.hpm.webservices.BasicWSImpl
+ invoker=org.jboss.wsf.stack.cxf.JBossWSInvoker
+ serviceName={http://ont001-hpm.rhcloud.com/BasicWS}BasicWService
+ portName={http://ont001-hpm.rhcloud.com/BasicWS}BasicWS
+ wsdlLocation=null
+ mtomEnabled=false
+10:58:09,361 INFO  [org.apache.cxf.service.factory.ReflectionServiceFactoryBean] (MSC service thread 1-1) Creating Service {http://ont001-hpm.rhcloud.com/BasicWS}BasicWService from WSDL: WEB-INF/wsdl/BasicWService.wsdl
+10:58:09,517 INFO  [org.jboss.wsf.stack.cxf.transport.AddressRewritingEndpointInfo] (MSC service thread 1-1) Setting new service endpoint address in wsdl: http://ONT001-HPM.rhcloud.com:80/BasicWService
+10:58:09,656 INFO  [org.jboss.wsf.stack.cxf.transport.AddressRewritingEndpointInfo] (MSC service thread 1-1) Setting new service endpoint address in wsdl: http://localhost:8080/hpm/BasicWService
+10:58:09,688 INFO  [org.apache.cxf.endpoint.ServerImpl] (MSC service thread 1-1) Setting the server's publish address to be http://localhost:8080/hpm/BasicWService
+10:58:09,729 INFO  [org.jboss.wsf.stack.cxf.deployment.WSDLFilePublisher] (MSC service thread 1-1) WSDL published to: file:/home/andy/projects/hornetq-master/examples/javaee/mdb-bmt/target/jbossas-node0/standalone/data/wsdl/ONT001-1.0.war/BasicWService.wsdl
+10:58:09,735 INFO  [org.jboss.as.webservices] (MSC service thread 1-11) JBAS015539: Starting service jboss.ws.port-component-link
+10:58:09,748 INFO  [org.jboss.as.webservices] (MSC service thread 1-10) JBAS015539: Starting service jboss.ws.endpoint."ONT001-1.0.war"."com.hpm.webservices.BasicWSImpl"
+10:58:09,753 INFO  [org.jboss.ws.common.management.DefaultEndpointRegistry] (MSC service thread 1-10) register: jboss.ws:context=hpm,endpoint=com.hpm.webservices.BasicWSImpl
+10:58:09,829 INFO  [org.jboss.web] (MSC service thread 1-3) JBAS018210: Registering web context: /hpm
+10:58:09,834 INFO  [org.jboss.as] (MSC service thread 1-7) JBAS015951: Admin console listening on http://127.0.0.1:9990
+10:58:09,835 INFO  [org.jboss.as] (MSC service thread 1-7) JBAS015874: JBoss AS 7.1.1.Final "Brontes" started in 5506ms - Started 216 of 296 services (79 services are passive or on-demand)
+10:58:09,979 INFO  [org.jboss.as.server] (DeploymentScanner-threads - 2) JBAS018559: Deployed "ONT001-1.0.war"
+mdb.jar:
+/org/
+/org/hornetq/
+/org/hornetq/javaee/
+/org/hornetq/javaee/example/
+/org/hornetq/javaee/example/server/
+/org/hornetq/javaee/example/server/MDB_BMTExample.class
+10:58:11,612 INFO  [org.jboss.as.repository] (management-handler-thread - 2) JBAS014900: Content added at location /home/andy/projects/hornetq-master/examples/javaee/mdb-bmt/target/jbossas-node0/standalone/data/content/f0/e2d589ab9490193e109c8bc833f725c87defae/content
+10:58:11,620 INFO  [org.jboss.as.server.deployment] (MSC service thread 1-8) JBAS015876: Starting deployment of "arquillian-service"
+10:58:11,811 WARN  [org.jboss.as.dependency.private] (MSC service thread 1-1) JBAS018567: Deployment "deployment.arquillian-service" is using a private module ("org.jboss.as.jmx:main") which may be changed or removed in future versions without notice.
+10:58:11,812 WARN  [org.jboss.as.dependency.private] (MSC service thread 1-1) JBAS018567: Deployment "deployment.arquillian-service" is using a private module ("org.jboss.as.server:main") which may be changed or removed in future versions without notice.
+10:58:11,813 WARN  [org.jboss.as.dependency.private] (MSC service thread 1-1) JBAS018567: Deployment "deployment.arquillian-service" is using a private module ("org.jboss.as.osgi:main") which may be changed or removed in future versions without notice.
+10:58:11,815 WARN  [org.jboss.as.dependency.private] (MSC service thread 1-1) JBAS018567: Deployment "deployment.arquillian-service" is using a private module ("org.jboss.jandex:main") which may be changed or removed in future versions without notice.
+10:58:11,817 WARN  [org.jboss.as.dependency.private] (MSC service thread 1-1) JBAS018567: Deployment "deployment.arquillian-service" is using a private module ("org.jboss.osgi.framework:main") which may be changed or removed in future versions without notice.
+10:58:11,953 INFO  [org.jboss.as.server] (management-handler-thread - 2) JBAS018559: Deployed "arquillian-service"
+10:58:12,328 INFO  [org.jboss.as.repository] (management-handler-thread - 3) JBAS014900: Content added at location /home/andy/projects/hornetq-master/examples/javaee/mdb-bmt/target/jbossas-node0/standalone/data/content/59/7dcdb0f420ed57aea638b2599f7a86eecf6c85/content
+10:58:12,333 INFO  [org.jboss.as.server.deployment] (MSC service thread 1-7) JBAS015876: Starting deployment of "mdb.jar"
+10:58:12,401 INFO  [org.jboss.as.arquillian] (MSC service thread 1-14) Arquillian deployment detected: ArquillianConfig[service=jboss.arquillian.config."mdb.jar",unit=mdb.jar,tests=[org.hornetq.javaee.example.server.ExampleRunnerTest]]
+10:58:12,418 INFO  [org.jboss.as.ejb3] (MSC service thread 1-15) JBAS014142: Started message driven bean 'MDB_BMTExample' with 'hornetq-ra' resource adapter
+10:58:12,562 INFO  [org.jboss.as.server] (management-handler-thread - 3) JBAS018559: Deployed "mdb.jar"
+Sent message: This is a text message
+10:58:13,229 INFO  [org.jboss.as.naming] (Remoting "localhost" task-3) JBAS011806: Channel end notification received, closing channel Channel ID 57be4578 (inbound) of Remoting connection 3ac552d5 to /127.0.0.1:58571
+10:58:13,255 INFO  [stdout] (Thread-0 (HornetQ-client-global-threads-1402019528)) message This is a text message received
+10:58:13,257 INFO  [stdout] (Thread-0 (HornetQ-client-global-threads-1402019528)) we're in the middle of a transaction: org.jboss.tm.usertx.client.ServerVMClientUserTransaction@6b04d3c8
+10:58:14,292 INFO  [org.jboss.as.server.deployment] (MSC service thread 1-5) JBAS015877: Stopped deployment mdb.jar in 33ms
+10:58:14,413 INFO  [org.jboss.as.repository] (management-handler-thread - 1) JBAS014901: Content removed from location /home/andy/projects/hornetq-master/examples/javaee/mdb-bmt/target/jbossas-node0/standalone/data/content/59/7dcdb0f420ed57aea638b2599f7a86eecf6c85/content
+10:58:14,415 INFO  [org.jboss.as.server] (management-handler-thread - 1) JBAS018558: Undeployed "mdb.jar"
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 10.609 sec
+10:58:14,436 INFO  [org.jboss.as.server.deployment] (MSC service thread 1-5) JBAS015877: Stopped deployment arquillian-service in 6ms
+10:58:14,530 INFO  [org.jboss.as.repository] (management-handler-thread - 2) JBAS014901: Content removed from location /home/andy/projects/hornetq-master/examples/javaee/mdb-bmt/target/jbossas-node0/standalone/data/content/f0/e2d589ab9490193e109c8bc833f725c87defae/content
+10:58:14,532 INFO  [org.jboss.as.server] (management-handler-thread - 2) JBAS018558: Undeployed "arquillian-service"
+
+Results :
+
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0
+
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time: 23.441s
+[INFO] Finished at: Wed Apr 17 10:58:16 BST 2013
+[INFO] Final Memory: 19M/361M
+[INFO] ------------------------------------------------------------------------
+</pre><p>Congratulations! you have successfully deployed and run a Java EE example.</p></div></div></div></body></html>

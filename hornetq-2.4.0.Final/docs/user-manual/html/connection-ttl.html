@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><title xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory">Chapter 17. Detecting Dead Connections</title><link rel="stylesheet" href="css/jbossorg.css" type="text/css"/><meta xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" name="generator" content="DocBook XSL Stylesheets V1.74.0"/><meta xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" http-equiv="Content-Type" content="text/html; charset=UTF-8"/><link rel="home" href="index.html" title="HornetQ User Manual"/><link rel="up" href="index.html" title="HornetQ User Manual"/><link rel="prev" href="configuring-transports.html" title="Chapter 16. Configuring the Transport"/><link rel="next" href="transaction-config.html" title="Chapter 18. Resource Manager Configuration"/></head><body><p id="title"><a href="http://www.jboss.org" class="site_href"><strong>JBoss.org</strong></a><a href="http://docs.jboss.org/" class="doc_href"><strong>Community Documentation</strong></a></p><ul class="docnav"><li class="previous"><a accesskey="p" href="configuring-transports.html"><strong>Prev</strong></a></li><li class="next"><a accesskey="n" href="transaction-config.html"><strong>Next</strong></a></li></ul><div class="chapter" lang="en"><div class="titlepage"><div><div><h2 class="title"><a id="connection-ttl"/>Chapter 17. Detecting Dead Connections</h2></div></div></div><div class="toc"><dl><dt><span class="section"><a href="connection-ttl.html#dead.connections">17.1. Cleaning up Dead Connection Resources on the Server</a></span></dt><dd><dl><dt><span class="section"><a href="connection-ttl.html#d0e3888">17.1.1. Closing core sessions or JMS connections that you have failed to close</a></span></dt></dl></dd><dt><span class="section"><a href="connection-ttl.html#d0e3904">17.2. Detecting failure from the client side.</a></span></dt><dt><span class="section"><a href="connection-ttl.html#connection-ttl.async-connection-execution">17.3. Configuring Asynchronous Connection Execution</a></span></dt></dl></div><p>In this section we will discuss connection time-to-live (TTL) and explain how HornetQ
+        deals with crashed clients and clients which have exited without cleanly closing their
+        resources.</p><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title"><a id="dead.connections"/>17.1. Cleaning up Dead Connection Resources on the Server</h2></div></div></div><p>Before a HornetQ client application exits it is considered good practice that it
+            should close its resources in a controlled manner, using a <code class="literal">finally</code>
+            block.</p><p>Here's an example of a well behaved core client application closing its session and
+            session factory in a finally block:</p><pre xmlns="" xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" class="">
+ServerLocator locator = null;
+ClientSessionFactory sf = null;
+ClientSession session = null;
+
+try
+{
+   locator = HornetQClient.createServerLocatorWithoutHA(..);
+
+   sf = locator.createClientSessionFactory();;
+
+   session = sf.createSession(...);
+   
+   ... do some stuff with the session...
+}
+finally
+{
+   if (session != null)
+   {
+      session.close();
+   }
+   
+   if (sf != null)
+   {
+      sf.close();
+   }
+
+   if(locator != null)
+   {
+      locator.close();
+   }
+}</pre><p>And here's an example of a well behaved JMS client application:</p><pre xmlns="" xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" class="">
+Connection jmsConnection = null;
+
+try
+{
+   ConnectionFactory jmsConnectionFactory = HornetQJMSClient.createConnectionFactoryWithoutHA(...);
+
+   jmsConnection = jmsConnectionFactory.createConnection();
+
+   ... do some stuff with the connection...
+}
+finally
+{
+   if (connection != null)
+   {
+      connection.close();
+   }
+}</pre><p>Unfortunately users don't always write well behaved applications, and sometimes
+            clients just crash so they don't have a chance to clean up their resources!</p><p>If this occurs then it can leave server side resources, like sessions, hanging on the
+            server. If these were not removed they would cause a resource leak on the server and
+            over time this result in the server running out of memory or other resources.</p><p>We have to balance the requirement for cleaning up dead client resources with the fact
+            that sometimes the network between the client and the server can fail and then come
+            back, allowing the client to reconnect. HornetQ supports client reconnection, so we
+            don't want to clean up "dead" server side resources too soon or this will prevent any
+            client from reconnecting, as it won't be able to find its old sessions on the
+            server.</p><p>HornetQ makes all of this configurable. For each <code class="literal">ClientSessionFactory</code> we define a <span class="emphasis"><em>connection TTL</em></span>.
+            Basically, the TTL determines how long the server will keep a connection alive in the
+            absence of any data arriving from the client. The client will automatically send "ping"
+            packets periodically to prevent the server from closing it down. If the server doesn't
+            receive any packets on a connection for the connection TTL time, then it will
+            automatically close all the sessions on the server that relate to that
+            connection.</p><p>If you're using JMS, the connection TTL is defined by the <code class="literal">ConnectionTTL</code> attribute on a <code class="literal">HornetQConnectionFactory</code>
+            instance, or if you're deploying JMS connection factory instances direct into JNDI on
+            the server side, you can specify it in the xml config, using the parameter <code class="literal">connection-ttl</code>.</p><p>The default value for connection ttl is <code class="literal">60000</code>ms, i.e. 1 minute. A
+            value of <code class="literal">-1</code> for <code class="literal">ConnectionTTL</code> means the server
+            will never time out the connection on the server side.</p><p><a id="connection-ttl.override"/>If you do not wish clients to be able to specify their own connection TTL, you can
+            override all values used by a global value set on the server side. This can be done by
+            specifying the <code class="literal">connection-ttl-override</code> attribute in the server side
+            configuration. The default value for <code class="literal">connection-ttl-override</code> is
+                <code class="literal">-1</code> which means "do not override" (i.e. let clients use their own
+            values).</p><div class="section" lang="en"><div class="titlepage"><div><div><h3 class="title"><a id="d0e3888"/>17.1.1. Closing core sessions or JMS connections that you have failed to close</h3></div></div></div><p>As previously discussed, it's important that all core client sessions and JMS
+                connections are always closed explicitly in a <code class="literal">finally</code> block when
+                you are finished using them. </p><p>If you fail to do so, HornetQ will detect this at garbage collection time, and log
+                a warning similar to the following in the logs (If you are using JMS the warning
+                will involve a JMS connection not a client session):</p><pre xmlns="" xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" class="">
+[Finalizer] 20:14:43,244 WARNING [org.hornetq.core.client.impl.DelegatingSession]  I'm closing a ClientSession you left open. Please make sure you close all ClientSessions explicitly before let
+ting them go out of scope!
+[Finalizer] 20:14:43,244 WARNING [org.hornetq.core.client.impl.DelegatingSession]  The session you didn't close was created here:
+java.lang.Exception
+   at org.hornetq.core.client.impl.DelegatingSession.&lt;init&gt;(DelegatingSession.java:83)
+   at org.acme.yourproject.YourClass (YourClass.java:666)</pre><p>HornetQ will then close the connection / client session for you.</p><p>Note that the log will also tell you the exact line of your user code where you
+                created the JMS connection / client session that you later did not close. This will
+                enable you to pinpoint the error in your code and correct it appropriately.</p></div></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title"><a id="d0e3904"/>17.2. Detecting failure from the client side.</h2></div></div></div><p>In the previous section we discussed how the client sends pings to the server and how
+            "dead" connection resources are cleaned up by the server. There's also another reason
+            for pinging, and that's for the <span class="emphasis"><em>client</em></span> to be able to detect that
+            the server or network has failed.</p><p>As long as the client is receiving data from the server it will consider the
+            connection to be still alive. </p><p>If the client does not receive any packets for <code class="literal">client-failure-check-period</code> milliseconds then it will consider the
+            connection failed and will either initiate failover, or call any <code class="literal">FailureListener</code> instances (or <code class="literal">ExceptionListener</code>
+            instances if you are using JMS) depending on how it has been configured.</p><p>If you're using JMS it's defined by the <code class="literal">ClientFailureCheckPeriod</code>
+            attribute on a <code class="literal">HornetQConnectionFactory</code> instance, or if you're
+            deploying JMS connection factory instances direct into JNDI on the server side, you can
+            specify it in the <code class="literal">hornetq-jms.xml </code> configuration file, using the
+            parameter <code class="literal">client-failure-check-period</code>.</p><p>The default value for client failure check period is <code class="literal">30000</code>ms, i.e.
+            30 seconds. A value of <code class="literal">-1</code> means the client will never fail the
+            connection on the client side if no data is received from the server. Typically this is
+            much lower than connection TTL to allow clients to reconnect in case of transitory
+            failure.</p></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title"><a id="connection-ttl.async-connection-execution"/>17.3. Configuring Asynchronous Connection Execution</h2></div></div></div><p>By default, packets received on the server side are executed on the remoting
+            thread.</p><p>It is possible instead to use a thread from a thread pool to handle some packets so
+            that the remoting thread is not tied up for too long. However, please note that
+            processing operations asynchronously on another thread adds a little more latency.
+            Please note that most short running operations are always handled on the remoting thread for performance reasons.
+           
+            To enable asynchronous connection execution, set the parameter <code class="literal">async-connection-execution-enabled</code> in <code class="literal">hornetq-configuration.xml</code> to <code class="literal">true</code> (default value is
+                <code class="literal">true</code>).</p></div></div><ul class="docnav"><li class="previous"><a accesskey="p" href="configuring-transports.html"><strong>Prev</strong>Chapter 16. Configuring the Transport</a></li><li class="up"><a accesskey="u" href="#"><strong>Top of page</strong></a></li><li class="home"><a accesskey="h" href="index.html"><strong>Front page</strong></a></li><li class="next"><a accesskey="n" href="transaction-config.html"><strong>Next</strong>Chapter 18. Resource Manager Configuration</a></li></ul></body></html>

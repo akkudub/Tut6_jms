@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><title xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory">Chapter 40. Libaio Native Libraries</title><link rel="stylesheet" href="css/jbossorg.css" type="text/css"/><meta xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" name="generator" content="DocBook XSL Stylesheets V1.74.0"/><meta xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" http-equiv="Content-Type" content="text/html; charset=UTF-8"/><link rel="home" href="index.html" title="HornetQ User Manual"/><link rel="up" href="index.html" title="HornetQ User Manual"/><link rel="prev" href="ha.html" title="Chapter 39. High Availability and Failover"/><link rel="next" href="thread-pooling.html" title="Chapter 41. Thread management"/></head><body><p id="title"><a href="http://www.jboss.org" class="site_href"><strong>JBoss.org</strong></a><a href="http://docs.jboss.org/" class="doc_href"><strong>Community Documentation</strong></a></p><ul class="docnav"><li class="previous"><a accesskey="p" href="ha.html"><strong>Prev</strong></a></li><li class="next"><a accesskey="n" href="thread-pooling.html"><strong>Next</strong></a></li></ul><div class="chapter" lang="en"><div class="titlepage"><div><div><h2 class="title"><a id="libaio"/>Chapter 40. Libaio Native Libraries</h2></div></div></div><div class="toc"><dl><dt><span class="section"><a href="libaio.html#d0e11917">40.1. Compiling the native libraries</a></span></dt><dd><dl><dt><span class="section"><a href="libaio.html#d0e11922">40.1.1. Install requirements</a></span></dt><dt><span class="section"><a href="libaio.html#d0e11972">40.1.2. Invoking the compilation</a></span></dt></dl></dd></dl></div><p>HornetQ distributes a native library, used as a bridge between HornetQ and Linux
+        libaio.</p><p><code class="literal">libaio</code> is a library, developed as part of the Linux kernel project.
+        With <code class="literal">libaio</code> we submit writes to the operating system where they are
+        processed asynchronously. Some time later the OS will call our code back when they have been
+        processed.</p><p>We use this in our high performance journal if configured to do so, please see <a class="xref" href="persistence.html" title="Chapter 15. Persistence">Chapter 15, <i>Persistence</i></a>.</p><p>These are the native libraries distributed by HornetQ:</p><div class="itemizedlist"><ul><li><p>libHornetQAIO32.so - x86 32 bits</p></li><li><p>libHornetQAIO64.so - x86 64 bits</p></li></ul></div><p>When using libaio, HornetQ will always try loading these files as long as they are on the
+            <a class="link" href="using-server.html#using-server.library.path" title="6.4. Library Path">library path</a>.</p><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title"><a id="d0e11917"/>40.1. Compiling the native libraries</h2></div></div></div><p>In the case that you are using Linux on a platform other than x86_32 or x86_64
+            (for example Itanium 64 bits or IBM Power) you may need to compile the native library, since we
+            do not distribute binaries for those platforms with the release.</p><div class="section" lang="en"><div class="titlepage"><div><div><h3 class="title"><a id="d0e11922"/>40.1.1. Install requirements</h3></div></div></div><div xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" class="note"><h2>Note</h2><p>At the moment the native layer is only available on Linux. If you are in a
+                    platform other than Linux the native compilation will not work</p></div><p>The native library uses <a class="ulink" href="http://en.wikipedia.org/wiki/Autoconf">autoconf</a> what makes the compilation process easy, however you need to
+                install extra packages as a requirement for compilation:</p><div class="itemizedlist"><ul><li><p>gcc - C Compiler</p></li><li><p>gcc-c++ or g++ - Extension to gcc with support for C++</p></li><li><p>autoconf - Tool for automating native build process</p></li><li><p>make - Plain old make</p></li><li><p>automake - Tool for automating make generation</p></li><li><p>libtool - Tool for link editing native libraries</p></li><li><p>libaio - library to disk asynchronous IO kernel functions</p></li><li><p>libaio-dev - Compilation support for libaio</p></li><li><p>A full JDK installed with the environment variable JAVA_HOME set to its
+                        location</p></li></ul></div><p>To perform this installation on RHEL or Fedora, you can simply type this at a
+                command line:</p><pre xmlns="" xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" class="">sudo yum install automake libtool autoconf gcc-c++ gcc libaio libaio-devel make</pre><p>Or on Debian systems:</p><pre xmlns="" xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" class="">sudo apt-get install automake libtool autoconf gcc-g++ gcc libaio libaio-dev make</pre><div xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" class="note"><h2>Note</h2><p>You could find a slight variation of the package names depending on the
+                    version and Linux distribution. (for example gcc-c++ on Fedora versus g++ on
+                    Debian systems)</p></div></div><div class="section" lang="en"><div class="titlepage"><div><div><h3 class="title"><a id="d0e11972"/>40.1.2. Invoking the compilation</h3></div></div></div><p>In the distribution, in the <code class="literal">native-src</code> directory, execute the
+                shell script <code class="literal">bootstrap</code>. This script will invoke <code class="literal">automake</code> and <code class="literal">make</code> what will create all the make
+                files and the native library.</p><pre xmlns="" xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" class="">someUser@someBox:/messaging-distribution/native-src$ ./bootstrap 
+checking for a BSD-compatible install... /usr/bin/install -c
+checking whether build environment is sane... yes
+checking for a thread-safe mkdir -p... /bin/mkdir -p
+
+...
+
+configure: creating ./config.status
+config.status: creating Makefile
+config.status: creating ./src/Makefile
+config.status: creating config.h
+config.status: config.h is unchanged
+config.status: executing depfiles commands
+config.status: executing libtool commands
+
+...</pre><p>The produced library will be at <code class="literal">./native-src/src/.libs/libHornetQAIO.so</code>. Simply move that file over
+                    <code class="literal">bin</code> on the distribution or the place you have chosen on the
+                    <a class="link" href="using-server.html#using-server.library.path" title="6.4. Library Path">library path</a>.</p><p>If you want to perform changes on the HornetQ libaio code, you could just call
+                make directly at the <code class="literal">native-src</code> directory.</p></div></div></div><ul class="docnav"><li class="previous"><a accesskey="p" href="ha.html"><strong>Prev</strong>Chapter 39. High Availability and Failover</a></li><li class="up"><a accesskey="u" href="#"><strong>Top of page</strong></a></li><li class="home"><a accesskey="h" href="index.html"><strong>Front page</strong></a></li><li class="next"><a accesskey="n" href="thread-pooling.html"><strong>Next</strong>Chapter 41. Thread management</a></li></ul></body></html>

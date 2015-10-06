@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><title xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory">Chapter 19. Flow Control</title><link rel="stylesheet" href="css/jbossorg.css" type="text/css"/><meta xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" name="generator" content="DocBook XSL Stylesheets V1.74.0"/><meta xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" http-equiv="Content-Type" content="text/html; charset=UTF-8"/><link rel="home" href="index.html" title="HornetQ User Manual"/><link rel="up" href="index.html" title="HornetQ User Manual"/><link rel="prev" href="transaction-config.html" title="Chapter 18. Resource Manager Configuration"/><link rel="next" href="send-guarantees.html" title="Chapter 20. Guarantees of sends and commits"/></head><body><p id="title"><a href="http://www.jboss.org" class="site_href"><strong>JBoss.org</strong></a><a href="http://docs.jboss.org/" class="doc_href"><strong>Community Documentation</strong></a></p><ul class="docnav"><li class="previous"><a accesskey="p" href="transaction-config.html"><strong>Prev</strong></a></li><li class="next"><a accesskey="n" href="send-guarantees.html"><strong>Next</strong></a></li></ul><div class="chapter" lang="en"><div class="titlepage"><div><div><h2 class="title"><a id="flow-control"/>Chapter 19. Flow Control</h2></div></div></div><div class="toc"><dl><dt><span class="section"><a href="flow-control.html#d0e4023">19.1. Consumer Flow Control</a></span></dt><dd><dl><dt><span class="section"><a href="flow-control.html#flow-control.consumer.window">19.1.1. Window-Based Flow Control</a></span></dt><dt><span class="section"><a href="flow-control.html#d0e4143">19.1.2. Rate limited flow control</a></span></dt></dl></dd><dt><span class="section"><a href="flow-control.html#d0e4196">19.2. Producer flow control</a></span></dt><dd><dl><dt><span class="section"><a href="flow-control.html#d0e4201">19.2.1. Window based flow control</a></span></dt><dt><span class="section"><a href="flow-control.html#d0e4285">19.2.2. Rate limited flow control</a></span></dt></dl></dd></dl></div><p>Flow control is used to limit the flow of data between a client and server, or a server and
+      another server in order to prevent the client or server being overwhelmed with data.</p><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title"><a id="d0e4023"/>19.1. Consumer Flow Control</h2></div></div></div><p>This controls the flow of data between the server and the client as the client consumes
+         messages. For performance reasons clients normally buffer messages before delivering to the
+         consumer via the <code class="literal">receive()</code> method or asynchronously via a message
+         listener. If the consumer cannot process messages as fast as they are being delivered and
+         stored in the internal buffer, then you could end up with a situation where messages would
+         keep building up possibly causing out of memory on the client if they cannot be processed
+         in time.</p><div class="section" lang="en"><div class="titlepage"><div><div><h3 class="title"><a id="flow-control.consumer.window"/>19.1.1. Window-Based Flow Control</h3></div></div></div><p>By default, HornetQ consumers buffer messages from the server in a client side buffer
+            before the client consumes them. This improves performance: otherwise every time the
+            client consumes a message, HornetQ would have to go the server to request the next
+            message. In turn, this message would then get sent to the client side, if one was
+            available.</p><p>A network round trip would be involved for <span class="emphasis"><em>every</em></span> message and
+            considerably reduce performance.</p><p>To prevent this, HornetQ pre-fetches messages into a buffer on each consumer. The
+            total maximum size of messages (in bytes) that will be buffered on each consumer is
+            determined by the <code class="literal">consumer-window-size</code> parameter.</p><p>By default, the <code class="literal">consumer-window-size</code> is set to 1 MiB (1024 * 1024
+            bytes).</p><p>The value can be:</p><div class="itemizedlist"><ul><li><p><code class="literal">-1</code> for an <span class="emphasis"><em>unbounded</em></span> buffer</p></li><li><p><code class="literal">0</code> to not buffer any messages. See <a class="xref" href="examples.html#examples.no-consumer-buffering" title="11.1.46. No Consumer Buffering">Section 11.1.46, “No Consumer Buffering”</a> for working example of a consumer
+                  with no buffering.</p></li><li><p><code class="literal">&gt;0</code> for a buffer with the given maximum size in
+                  bytes.</p></li></ul></div><p>Setting the consumer window size can considerably improve performance depending on
+            the messaging use case. As an example, let's consider the two extremes: </p><div class="variablelist"><dl><dt><span class="term">Fast consumers</span></dt><dd><p>Fast consumers can process messages as fast as they consume them (or even
+                     faster)</p><p>To allow fast consumers, set the <code class="literal">consumer-window-size</code> to
+                     -1. This will allow <span class="emphasis"><em>unbounded</em></span> message buffering on the
+                     client side.</p><p>Use this setting with caution: it can overflow the client memory if the
+                     consumer is not able to process messages as fast as it receives them.</p></dd><dt><span class="term">Slow consumers</span></dt><dd><p>Slow consumers takes significant time to process each message and it is
+                     desirable to prevent buffering messages on the client side so that they can be
+                     delivered to another consumer instead.</p><p>Consider a situation where a queue has 2 consumers; 1 of which is very slow.
+                     Messages are delivered in a round robin fashion to both consumers, the fast
+                     consumer processes all of its messages very quickly until its buffer is empty.
+                     At this point there are still messages awaiting to be processed in the buffer
+                     of the slow consumer thus preventing them being processed by the fast consumer.
+                     The fast consumer is therefore sitting idle when it could be processing the
+                     other messages. </p><p>To allow slow consumers, set the <code class="literal">consumer-window-size</code> to
+                     0 (for no buffer at all). This will prevent the slow consumer from buffering
+                     any messages on the client side. Messages will remain on the server side ready
+                     to be consumed by other consumers.</p><p>Setting this to 0 can give deterministic distribution between multiple
+                     consumers on a queue.</p></dd></dl></div><p>Most of the consumers cannot be clearly identified as fast or slow consumers but are
+            in-between. In that case, setting the value of <code class="literal">consumer-window-size</code>
+            to optimize performance depends on the messaging use case and requires benchmarks to
+            find the optimal value, but a value of 1MiB is fine in most cases.</p><div class="section" lang="en"><div class="titlepage"><div><div><h4 class="title"><a id="flow-control.core.api"/>19.1.1.1. Using Core API</h4></div></div></div><p>If HornetQ Core API is used, the consumer window size is specified by <code class="literal">ServerLocator.setConsumerWindowSize()</code> method and some of the
+                  <code class="literal">ClientSession.createConsumer()</code> methods.</p></div><div class="section" lang="en"><div class="titlepage"><div><div><h4 class="title"><a id="d0e4124"/>19.1.1.2. Using JMS</h4></div></div></div><p>if JNDI is used to look up the connection factory, the consumer window size is
+               configured in <code class="literal">hornetq-jms.xml</code>:</p><pre xmlns="" xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" class="">
+&lt;connection-factory name="ConnectionFactory"&gt;
+   &lt;connectors&gt;
+      &lt;connector-ref connector-name="netty-connector"/&gt;
+   &lt;/connectors&gt;
+   &lt;entries&gt;
+      &lt;entry name="ConnectionFactory"/&gt;
+   &lt;/entries&gt;
+      
+   &lt;!-- Set the consumer window size to 0 to have *no* buffer on the client side --&gt;
+   &lt;consumer-window-size&gt;0&lt;/consumer-window-size&gt;
+&lt;/connection-factory&gt;</pre><p>If the connection factory is directly instantiated, the consumer window size is
+               specified by <code class="literal">HornetQConnectionFactory.setConsumerWindowSize()</code>
+               method.</p><p>Please see <a class="xref" href="examples.html#examples.no-consumer-buffering" title="11.1.46. No Consumer Buffering">Section 11.1.46, “No Consumer Buffering”</a> for an example which
+               shows how to configure HornetQ to prevent consumer buffering when dealing with slow
+               consumers.</p></div></div><div class="section" lang="en"><div class="titlepage"><div><div><h3 class="title"><a id="d0e4143"/>19.1.2. Rate limited flow control</h3></div></div></div><p>It is also possible to control the <span class="emphasis"><em>rate</em></span> at which a consumer can
+            consume messages. This is a form of throttling and can be used to make sure that a
+            consumer never consumes messages at a rate faster than the rate specified. </p><p>The rate must be a positive integer to enable this functionality and is the maximum
+            desired message consumption rate specified in units of messages per second. Setting this
+            to <code class="literal">-1</code> disables rate limited flow control. The default value is
+               <code class="literal">-1</code>.</p><p>Please see <a class="xref" href="examples.html#examples.consumer-rate-limit" title="11.1.17. Message Consumer Rate Limiting">Section 11.1.17, “Message Consumer Rate Limiting”</a> for a working example of
+            limiting consumer rate.</p><div class="section" lang="en"><div class="titlepage"><div><div><h4 class="title"><a id="flow-control.rate.core.api"/>19.1.2.1. Using Core API</h4></div></div></div><p>If the HornetQ core API is being used the rate can be set via the <code class="literal">ServerLocator.setConsumerMaxRate(int consumerMaxRate)</code> method or
+               alternatively via some of the <code class="literal">ClientSession.createConsumer()</code>
+               methods. </p></div><div class="section" lang="en"><div class="titlepage"><div><div><h4 class="title"><a id="d0e4174"/>19.1.2.2. Using JMS</h4></div></div></div><p>If JNDI is used to look up the connection factory, the max rate can be configured
+               in <code class="literal">hornetq-jms.xml</code>:</p><pre xmlns="" xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" class="">
+&lt;connection-factory name="ConnectionFactory"&gt;
+   &lt;connectors&gt;
+      &lt;connector-ref connector-name="netty-connector"/&gt;
+   &lt;/connectors&gt;
+   &lt;entries&gt;
+      &lt;entry name="ConnectionFactory"/&gt;
+   &lt;/entries&gt;
+   &lt;!-- We limit consumers created on this connection factory to consume messages at a maximum rate
+   of 10 messages per sec --&gt;
+   &lt;consumer-max-rate&gt;10&lt;/consumer-max-rate&gt;
+&lt;/connection-factory&gt;</pre><p>If the connection factory is directly instantiated, the max rate size can be set
+               via the <code class="literal">HornetQConnectionFactory.setConsumerMaxRate(int
+                  consumerMaxRate)</code> method.</p><div xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" class="note"><h2>Note</h2><p>Rate limited flow control can be used in conjunction with window based flow
+                  control. Rate limited flow control only effects how many messages a client can
+                  consume in a second and not how many messages are in its buffer. So if you had a
+                  slow rate limit and a high window based limit the clients internal buffer would
+                  soon fill up with messages.</p></div><p>Please see <a class="xref" href="examples.html#examples.consumer-rate-limit" title="11.1.17. Message Consumer Rate Limiting">Section 11.1.17, “Message Consumer Rate Limiting”</a> for an example which
+               shows how to configure HornetQ to prevent consumer buffering when dealing with slow
+               consumers.</p></div></div></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title"><a id="d0e4196"/>19.2. Producer flow control</h2></div></div></div><p>HornetQ also can limit the amount of data sent from a client to a server to prevent the
+         server being overwhelmed.</p><div class="section" lang="en"><div class="titlepage"><div><div><h3 class="title"><a id="d0e4201"/>19.2.1. Window based flow control</h3></div></div></div><p>In a similar way to consumer window based flow control, HornetQ producers, by
+            default, can only send messages to an address as long as they have sufficient credits to
+            do so. The amount of credits required to send a message is given by the size of the
+            message.</p><p>As producers run low on credits they request more from the server, when the server
+            sends them more credits they can send more messages.</p><p>The amount of credits a producer requests in one go is known as the <span class="italic">window size</span>.</p><p>The window size therefore determines the amount of bytes that can be in-flight at any
+            one time before more need to be requested - this prevents the remoting connection from
+            getting overloaded.</p><div class="section" lang="en"><div class="titlepage"><div><div><h4 class="title"><a id="d0e4215"/>19.2.1.1. Using Core API</h4></div></div></div><p>If the HornetQ core API is being used, window size can be set via the <code class="literal">ServerLocator.setProducerWindowSize(int producerWindowSize)</code>
+               method.</p></div><div class="section" lang="en"><div class="titlepage"><div><div><h4 class="title"><a id="d0e4223"/>19.2.1.2. Using JMS</h4></div></div></div><p>If JNDI is used to look up the connection factory, the producer window size can be
+               configured in <code class="literal">hornetq-jms.xml</code>:</p><pre xmlns="" xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" class="">
+&lt;connection-factory name="ConnectionFactory"&gt;
+   &lt;connectors&gt;
+      &lt;connector-ref connector-name="netty-connector"/&gt;
+   &lt;/connectors&gt;
+   &lt;entries&gt;
+      &lt;entry name="ConnectionFactory"/&gt;
+   &lt;/entries&gt;
+   &lt;producer-window-size&gt;10&lt;/producer-window-size&gt;
+&lt;/connection-factory&gt;</pre><p>If the connection factory is directly instantiated, the producer window size can
+               be set via the <code class="literal">HornetQConnectionFactory.setProducerWindowSize(int
+                  producerWindowSize)</code> method.</p></div><div class="section" lang="en"><div class="titlepage"><div><div><h4 class="title"><a id="d0e4238"/>19.2.1.3. Blocking producer window based flow control</h4></div></div></div><p>Normally the server will always give the same number of credits as have been
+               requested. However, it is also possible to set a maximum size on any address, and the
+               server will never send more credits than could cause the address's upper memory limit
+               to be exceeded.</p><p>For example, if I have a JMS queue called "myqueue", I could set the maximum
+               memory size to 10MiB, and the the server will control the number of credits sent to
+               any producers which are sending any messages to myqueue such that the total messages
+               in the queue never exceeds 10MiB.</p><p>When the address gets full, producers will block on the client side until more
+               space frees up on the address, i.e. until messages are consumed from the queue thus
+               freeing up space for more messages to be sent.</p><p>We call this blocking producer flow control, and it's an efficient way to prevent
+               the server running out of memory due to producers sending more messages than can be
+               handled at any time.</p><p>It is an alternative approach to paging, which does not block producers but
+               instead pages messages to storage.</p><p>To configure an address with a maximum size and tell the server that you want to
+               block producers for this address if it becomes full, you need to define an
+               AddressSettings (<a class="xref" href="queue-attributes.html#queue-attributes.address-settings" title="25.3. Configuring Queues Via Address Settings">Section 25.3, “Configuring Queues Via Address Settings”</a>) block for the
+               address and specify <code class="literal">max-size-bytes</code> and <code class="literal">address-full-policy</code></p><p>The address block applies to all queues registered to that address. I.e. the total
+               memory for all queues bound to that address will not exceed <code class="literal">max-size-bytes</code>. In the case of JMS topics this means the <span class="italic">total</span> memory of all subscriptions in the topic won't
+               exceed max-size-bytes.</p><p>Here's an example:</p><pre xmlns="" xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" class="">
+&lt;address-settings&gt;
+   &lt;address-setting match="jms.queue.exampleQueue"&gt;
+      &lt;max-size-bytes&gt;100000&lt;/max-size-bytes&gt;
+      &lt;address-full-policy&gt;BLOCK&lt;/address-full-policy&gt;
+   &lt;/address-setting&gt;
+&lt;/address-settings&gt;</pre><p>The above example would set the max size of the JMS queue "exampleQueue" to be
+               100000 bytes and would block any producers sending to that address to prevent that
+               max size being exceeded.</p><p>Note the policy must be set to <code class="literal">BLOCK</code> to enable blocking producer
+            flow control.</p><div xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" class="note"><h2>Note</h2><p>Note that in the default configuration all addresses are set to block producers after 10 MiB of message data
+            is in the address. This means you cannot send more than 10MiB of message data to an address without it being consumed before the producers
+            will be blocked. If you do not want this behaviour increase the <code class="literal">max-size-bytes</code> parameter or change the 
+            address full message policy.</p></div></div></div><div class="section" lang="en"><div class="titlepage"><div><div><h3 class="title"><a id="d0e4285"/>19.2.2. Rate limited flow control</h3></div></div></div><p>HornetQ also allows the rate a producer can emit message to be limited, in units of
+            messages per second. By specifying such a rate, HornetQ will ensure that producer never
+            produces messages at a rate higher than that specified.</p><p>The rate must be a positive integer to enable this functionality and is the maximum
+            desired message consumption rate specified in units of messages per second. Setting this
+            to <code class="literal">-1</code> disables rate limited flow control. The default value is
+               <code class="literal">-1</code>.</p><p>Please see the <a class="xref" href="examples.html#producer-rate-limiting-example" title="11.1.50. Message Producer Rate Limiting">Section 11.1.50, “Message Producer Rate Limiting”</a> for a working example
+            of limiting producer rate.</p><div class="section" lang="en"><div class="titlepage"><div><div><h4 class="title"><a id="flow-control.producer.rate.core.api"/>19.2.2.1. Using Core API</h4></div></div></div><p>If the HornetQ core API is being used the rate can be set via the <code class="literal">ServerLocator.setProducerMaxRate(int consumerMaxRate)</code> method or
+               alternatively via some of the <code class="literal">ClientSession.createProducer()</code>
+               methods. </p></div><div class="section" lang="en"><div class="titlepage"><div><div><h4 class="title"><a id="d0e4313"/>19.2.2.2. Using JMS</h4></div></div></div><p>If JNDI is used to look up the connection factory, the max rate can be configured
+               in <code class="literal">hornetq-jms.xml</code>:</p><pre xmlns="" xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" class="">
+&lt;connection-factory name="ConnectionFactory"&gt;
+   &lt;connectors&gt;
+      &lt;connector-ref connector-name="netty-connector"/&gt;
+   &lt;/connectors&gt;
+   &lt;entries&gt;
+      &lt;entry name="ConnectionFactory"/&gt;
+   &lt;/entries&gt;
+   &lt;!-- We limit producers created on this connection factory to produce messages at a maximum rate
+   of 10 messages per sec --&gt;
+   &lt;producer-max-rate&gt;10&lt;/producer-max-rate&gt;
+&lt;/connection-factory&gt;</pre><p>If the connection factory is directly instantiated, the max rate size can be set
+               via the <code class="literal">HornetQConnectionFactory.setProducerMaxRate(int
+                  consumerMaxRate)</code> method.</p></div></div></div></div><ul class="docnav"><li class="previous"><a accesskey="p" href="transaction-config.html"><strong>Prev</strong>Chapter 18. Resource Manager Configuration</a></li><li class="up"><a accesskey="u" href="#"><strong>Top of page</strong></a></li><li class="home"><a accesskey="h" href="index.html"><strong>Front page</strong></a></li><li class="next"><a accesskey="n" href="send-guarantees.html"><strong>Next</strong>Chapter 20. Guarantees of sends and commits</a></li></ul></body></html>

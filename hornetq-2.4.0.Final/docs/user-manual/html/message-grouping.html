@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><title xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory">Chapter 28. Message Grouping</title><link rel="stylesheet" href="css/jbossorg.css" type="text/css"/><meta xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" name="generator" content="DocBook XSL Stylesheets V1.74.0"/><meta xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" http-equiv="Content-Type" content="text/html; charset=UTF-8"/><link rel="home" href="index.html" title="HornetQ User Manual"/><link rel="up" href="index.html" title="HornetQ User Manual"/><link rel="prev" href="last-value-queues.html" title="Chapter 27. Last-Value Queues"/><link rel="next" href="pre-acknowledge.html" title="Chapter 29. Extra Acknowledge Modes"/></head><body><p id="title"><a href="http://www.jboss.org" class="site_href"><strong>JBoss.org</strong></a><a href="http://docs.jboss.org/" class="doc_href"><strong>Community Documentation</strong></a></p><ul class="docnav"><li class="previous"><a accesskey="p" href="last-value-queues.html"><strong>Prev</strong></a></li><li class="next"><a accesskey="n" href="pre-acknowledge.html"><strong>Next</strong></a></li></ul><div class="chapter" lang="en"><div class="titlepage"><div><div><h2 class="title"><a id="message-grouping"/>Chapter 28. Message Grouping</h2></div></div></div><div class="toc"><dl><dt><span class="section"><a href="message-grouping.html#d0e5688">28.1. Using Core API</a></span></dt><dt><span class="section"><a href="message-grouping.html#message-grouping.jmsconfigure">28.2. Using JMS</a></span></dt><dt><span class="section"><a href="message-grouping.html#d0e5738">28.3. Example</a></span></dt><dt><span class="section"><a href="message-grouping.html#d0e5745">28.4. Example</a></span></dt><dt><span class="section"><a href="message-grouping.html#d0e5752">28.5.  Clustered Grouping</a></span></dt><dd><dl><dt><span class="section"><a href="message-grouping.html#d0e5782">28.5.1. Clustered Grouping Best Practices</a></span></dt><dt><span class="section"><a href="message-grouping.html#d0e5797">28.5.2. Clustered Grouping Example</a></span></dt></dl></dd></dl></div><p>Message groups are sets of messages that have the following characteristics:</p><div class="itemizedlist"><ul><li><p>Messages in a message group share the same group id, i.e. they have same group
+            identifier property (<code class="literal">JMSXGroupID</code> for JMS, <code class="literal">_HQ_GROUP_ID</code> for HornetQ Core API).</p></li><li><p>Messages in a message group are always consumed by the same consumer, even if there
+            are many consumers on a queue. They pin all messages with the same group id to the same
+            consumer. If that consumer closes another consumer is chosen and will receive all
+            messages with the same group id.</p></li></ul></div><p>Message groups are useful when you want all messages for a certain value of the property to
+      be processed serially by the same consumer.</p><p>An example might be orders for a certain stock. You may want orders for any particular
+      stock to be processed serially by the same consumer. To do this you can create a pool of
+      consumers (perhaps one for each stock, but less will work too), then set the stock name as the
+      value of the _HQ_GROUP_ID property.</p><p>This will ensure that all messages for a particular stock will always be processed by the
+      same consumer.</p><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title"><a id="d0e5688"/>28.1. Using Core API</h2></div></div></div><p>The property name used to identify the message group is <code class="literal">"_HQ_GROUP_ID"</code> (or the constant <code class="literal">MessageImpl.HDR_GROUP_ID</code>). Alternatively, you can set <code class="literal">autogroup</code> to true on the <code class="literal">SessionFactory</code> which will pick a
+         random unique id. </p></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title"><a id="message-grouping.jmsconfigure"/>28.2. Using JMS</h2></div></div></div><p>The property name used to identify the message group is <code class="literal">JMSXGroupID</code>.</p><pre xmlns="" xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" class="">
+ // send 2 messages in the same group to ensure the same
+ // consumer will receive both
+ Message message = ...
+ message.setStringProperty("JMSXGroupID", "Group-0");
+ producer.send(message);
+
+ message = ...
+ message.setStringProperty("JMSXGroupID", "Group-0");
+ producer.send(message);</pre><p>Alternatively, you can set <code class="literal">autogroup</code> to true on the <code class="literal">HornetQConnectonFactory</code> which will pick a random unique id. This can also be
+         set in the <code class="literal">hornetq-jms.xml</code> file like this:</p><pre xmlns="" xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" class="">
+&lt;connection-factory name="ConnectionFactory"&gt;
+   &lt;connectors&gt;
+      &lt;connector-ref connector-name="netty-connector"/&gt;
+   &lt;/connectors&gt;
+   &lt;entries&gt;
+      &lt;entry name="ConnectionFactory"/&gt;
+   &lt;/entries&gt;
+   &lt;autogroup&gt;true&lt;/autogroup&gt;
+&lt;/connection-factory&gt;</pre><p>Alternatively you can set the group id via the connection factory. All messages sent
+         with producers created via this connection factory will set the <code class="literal">JMSXGroupID</code> to the specified value on all messages sent. To configure the
+         group id set it on the connection factory in the <code class="literal">hornetq-jms.xml</code> config
+         file as follows
+         </p><pre xmlns="" xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" class="">
+&lt;connection-factory name="ConnectionFactory"&gt;
+   &lt;connectors&gt;
+      &lt;connector-ref connector-name="netty-connector"/&gt;
+   &lt;/connectors&gt;
+   &lt;entries&gt;
+      &lt;entry name="ConnectionFactory"/&gt;
+   &lt;/entries&gt;
+   &lt;group-id&gt;Group-0&lt;/group-id&gt;
+&lt;/connection-factory&gt;</pre></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title"><a id="d0e5738"/>28.3. Example</h2></div></div></div><p>See <a class="xref" href="examples.html#examples.message-group" title="11.1.41. Message Group">Section 11.1.41, “Message Group”</a> for an example which shows how message
+         groups are configured and used with JMS.</p></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title"><a id="d0e5745"/>28.4. Example</h2></div></div></div><p>See <a class="xref" href="examples.html#examples.message-group2" title="11.1.42. Message Group">Section 11.1.42, “Message Group”</a> for an example which shows how message
+         groups are configured via a connection factory.</p></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title"><a id="d0e5752"/>28.5.  Clustered Grouping</h2></div></div></div><p>Using message groups in a cluster is a bit more complex. This is because messages with a
+         particular group id can arrive on any node so each node needs to know about which group
+         id's are bound to which consumer on which node. The consumer handling messages for a
+         particular group id may be on a different node of the cluster, so each node needs to know
+         this information so it can route the message correctly to the node which has that consumer. </p><p>To solve this there is the notion of a grouping handler. Each node will have its own
+         grouping handler and when a messages is sent with a group id assigned, the handlers will
+         decide between them which route the message should take.</p><p><a id="message-grouping.type"/>There are 2 types of handlers; Local and Remote. Each cluster should choose 1 node to
+         have a local grouping handler and all the other nodes should have remote handlers- it's the
+         local handler that actually makes the decision as to what route should be used, all the
+         other remote handlers converse with this. Here is a sample config for both types of
+         handler, this should be configured in the <span class="italic">hornetq-configuration.xml</span>
+         file.</p><pre xmlns="" xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" class="">
+&lt;grouping-handler name="my-grouping-handler"&gt;
+   &lt;type&gt;LOCAL&lt;/type&gt;
+   &lt;address&gt;jms&lt;/address&gt;
+   &lt;timeout&gt;5000&lt;/timeout&gt;
+&lt;/grouping-handler&gt;
+
+&lt;grouping-handler name="my-grouping-handler"&gt;
+   &lt;type&gt;REMOTE&lt;/type&gt;
+   &lt;address&gt;jms&lt;/address&gt;
+   &lt;timeout&gt;5000&lt;/timeout&gt;
+&lt;/grouping-handler&gt;</pre><p><a id="message-grouping.address"/>The <span class="italic">address</span> attribute refers to a
+      <a class="link" href="clusters.html#clusters.address">cluster connection and the address it uses</a>,
+      refer to the clustering section on how to configure clusters. The
+            <span class="italic">timeout</span> attribute referees to how long to wait for a
+         decision to be made, an exception will be thrown during the send if this timeout is
+         reached, this ensures that strict ordering is kept.</p><p>The decision as to where a message should be routed to is initially proposed by the node
+         that receives the message. The node will pick a suitable route as per the normal clustered
+         routing conditions, i.e. round robin available queues, use a local queue first and choose a
+         queue that has a consumer. If the proposal is accepted by the grouping handlers the node
+         will route messages to this queue from that point on, if rejected an alternative route will
+         be offered and the node will again route to that queue indefinitely. All other nodes will
+         also route to the queue chosen at proposal time. Once the message arrives at the queue then
+         normal single server message group semantics take over and the message is pinned to a
+         consumer on that queue.</p><p>You may have noticed that there is a single point of failure with the single local
+         handler. If this node crashes then no decisions will be able to be made. Any messages sent
+         will be not be delivered and an exception thrown. To avoid this happening Local Handlers
+         can be replicated on another backup node. Simple create your back up node and configure it
+         with the same Local handler.</p><p/><div class="section" lang="en"><div class="titlepage"><div><div><h3 class="title"><a id="d0e5782"/>28.5.1. Clustered Grouping Best Practices</h3></div></div></div><p>Some best practices should be followed when using clustered grouping:</p><div xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" class="orderedlist"><ol><li><p>Make sure your consumers are distributed evenly across the different nodes
+                     if possible. This is only an issue if you are creating and closing consumers
+                     regularly. Since messages are always routed to the same queue once pinned,
+                     removing a consumer from this queue may leave it with no consumers meaning the
+                     queue will just keep receiving the messages. Avoid closing consumers or make
+                     sure that you always have plenty of consumers, i.e., if you have 3 nodes have 3
+                     consumers.</p></li><li><p>Use durable queues if possible. If queues are removed once a group is bound
+                     to it, then it is possible that other nodes may still try to route messages to
+                     it. This can be avoided by making sure that the queue is deleted by the session
+                     that is sending the messages. This means that when the next message is sent it
+                     is sent to the node where the queue was deleted meaning a new proposal can
+                     successfully take place. Alternatively you could just start using a different
+                     group id.</p></li><li><p>Always make sure that the node that has the Local Grouping Handler is
+                     replicated. These means that on failover grouping will still occur.</p></li></ol></div></div><div class="section" lang="en"><div class="titlepage"><div><div><h3 class="title"><a id="d0e5797"/>28.5.2. Clustered Grouping Example</h3></div></div></div><p>See <a class="xref" href="examples.html#examples.clustered.grouping" title="11.1.10. Clustered Grouping">Section 11.1.10, “Clustered Grouping”</a> for an example of how to configure
+            message groups with a HornetQ cluster</p></div></div></div><ul class="docnav"><li class="previous"><a accesskey="p" href="last-value-queues.html"><strong>Prev</strong>Chapter 27. Last-Value Queues</a></li><li class="up"><a accesskey="u" href="#"><strong>Top of page</strong></a></li><li class="home"><a accesskey="h" href="index.html"><strong>Front page</strong></a></li><li class="next"><a accesskey="n" href="pre-acknowledge.html"><strong>Next</strong>Chapter 29. Extra Acknowledge Modes</a></li></ul></body></html>

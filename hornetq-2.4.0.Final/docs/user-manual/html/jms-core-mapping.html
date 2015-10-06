@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><title xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory">Chapter 9. Mapping JMS Concepts to the Core API</title><link rel="stylesheet" href="css/jbossorg.css" type="text/css"/><meta xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" name="generator" content="DocBook XSL Stylesheets V1.74.0"/><meta xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" http-equiv="Content-Type" content="text/html; charset=UTF-8"/><link rel="home" href="index.html" title="HornetQ User Manual"/><link rel="up" href="index.html" title="HornetQ User Manual"/><link rel="prev" href="using-core.html" title="Chapter 8. Using Core"/><link rel="next" href="client-classpath.html" title="Chapter 10. The Client Classpath"/></head><body><p id="title"><a href="http://www.jboss.org" class="site_href"><strong>JBoss.org</strong></a><a href="http://docs.jboss.org/" class="doc_href"><strong>Community Documentation</strong></a></p><ul class="docnav"><li class="previous"><a accesskey="p" href="using-core.html"><strong>Prev</strong></a></li><li class="next"><a accesskey="n" href="client-classpath.html"><strong>Next</strong></a></li></ul><div class="chapter" lang="en"><div class="titlepage"><div><div><h2 class="title"><a id="jms-core-mapping"/>Chapter 9. Mapping JMS Concepts to the Core API</h2></div></div></div><p>This chapter describes how JMS destinations are mapped to HornetQ addresses.</p><p>HornetQ core is JMS-agnostic. It does not have any concept of a JMS topic. A JMS topic is
+        implemented in core as an address (the topic name) with zero or more queues bound to it.
+        Each queue bound to that address represents a topic subscription. Likewise, a JMS queue is
+        implemented as an address (the JMS queue name) with one single queue bound to it which
+        represents the JMS queue.</p><p>By convention, all JMS queues map to core queues where the core queue name has the string
+            <code class="literal">jms.queue.</code> prepended to it. E.g. the JMS queue with the name
+        "orders.europe" would map to the core queue with the name "jms.queue.orders.europe". The
+        address at which the core queue is bound is also given by the core queue name.</p><p>For JMS topics the address at which the queues that represent the subscriptions are bound
+        is given by prepending the string "jms.topic." to the name of the JMS topic. E.g. the JMS
+        topic with name "news.europe" would map to the core address "jms.topic.news.europe"</p><p>In other words if you send a JMS message to a JMS queue with name "orders.europe" it will
+        get routed on the server to any core queues bound to the address "jms.queue.orders.europe".
+        If you send a JMS message to a JMS topic with name "news.europe" it will get routed on the
+        server to any core queues bound to the address "jms.topic.news.europe".</p><p>If you want to configure settings for a JMS Queue with the name "orders.europe", you need
+        to configure the corresponding core queue "jms.queue.orders.europe":</p><pre xmlns="" xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" class="">
+&lt;!-- expired messages in JMS Queue "orders.europe" will be sent to the JMS Queue "expiry.europe" --&gt;
+&lt;address-setting match="jms.queue.orders.europe"&gt;
+   &lt;expiry-address&gt;jms.queue.expiry.europe&lt;/expiry-address&gt;
+   ...
+&lt;/address-setting&gt;</pre></div><ul class="docnav"><li class="previous"><a accesskey="p" href="using-core.html"><strong>Prev</strong>Chapter 8. Using Core</a></li><li class="up"><a accesskey="u" href="#"><strong>Top of page</strong></a></li><li class="home"><a accesskey="h" href="index.html"><strong>Front page</strong></a></li><li class="next"><a accesskey="n" href="client-classpath.html"><strong>Next</strong>Chapter 10. The Client Classpath</a></li></ul></body></html>

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><title xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory">Chapter 35. Diverting and Splitting Message Flows</title><link rel="stylesheet" href="css/jbossorg.css" type="text/css"/><meta xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" name="generator" content="DocBook XSL Stylesheets V1.74.0"/><meta xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" http-equiv="Content-Type" content="text/html; charset=UTF-8"/><link rel="home" href="index.html" title="HornetQ User Manual"/><link rel="up" href="index.html" title="HornetQ User Manual"/><link rel="prev" href="client-reconnection.html" title="Chapter 34. Client Reconnection and Session Reattachment"/><link rel="next" href="core-bridges.html" title="Chapter 36. Core Bridges"/></head><body><p id="title"><a href="http://www.jboss.org" class="site_href"><strong>JBoss.org</strong></a><a href="http://docs.jboss.org/" class="doc_href"><strong>Community Documentation</strong></a></p><ul class="docnav"><li class="previous"><a accesskey="p" href="client-reconnection.html"><strong>Prev</strong></a></li><li class="next"><a accesskey="n" href="core-bridges.html"><strong>Next</strong></a></li></ul><div class="chapter" lang="en"><div class="titlepage"><div><div><h2 class="title"><a id="diverts"/>Chapter 35. Diverting and Splitting Message Flows</h2></div></div></div><div class="toc"><dl><dt><span class="section"><a href="diverts.html#d0e9869">35.1. Exclusive Divert</a></span></dt><dt><span class="section"><a href="diverts.html#d0e9907">35.2. Non-exclusive Divert</a></span></dt></dl></div><p>HornetQ allows you to configure objects called <span class="emphasis"><em>diverts</em></span> with
+        some simple server configuration.</p><p>Diverts allow you to transparently divert messages routed to one address to some other
+        address, without making any changes to any client application logic.</p><p>Diverts can be <span class="emphasis"><em>exclusive</em></span>, meaning that the message is diverted
+        to the new address, and does not go to the old address at all, or they can be
+            <span class="emphasis"><em>non-exclusive</em></span> which means the message continues to go the old
+        address, and a <span class="emphasis"><em>copy</em></span> of it is also sent to the new address.
+        Non-exclusive diverts can therefore be used for <span class="emphasis"><em>splitting</em></span> message
+        flows, e.g. there may be a requirement to monitor every order sent to an order queue.</p><p>Diverts can also be configured to have an optional message filter. If specified then only
+        messages that match the filter will be diverted.</p><p>Diverts can also be configured to apply a <code class="literal">Transformer</code>. If specified,
+        all diverted messages will have the opportunity of being transformed by the <code class="literal">Transformer</code>.</p><p>A divert will only divert a message to an address on the <span class="emphasis"><em>same server</em></span>,
+        however, if you want to divert to an address on a different server, a common pattern would
+        be to divert to a local store-and-forward queue, then set up a bridge which consumes from
+        that queue and forwards to an address on a different server.</p><p>Diverts are therefore a very sophisticated concept, which when combined with bridges can
+        be used to create interesting and complex routings. The set of diverts on a server can be
+        thought of as a type of routing table for messages. Combining diverts with bridges allows
+        you to create a distributed network of reliable routing connections between multiple
+        geographically distributed servers, creating your global messaging mesh.</p><p>Diverts are defined as xml in the <code class="literal">hornetq-configuration.xml</code> file. There can
+        be zero or more diverts in the file.</p><p>Please see <a class="xref" href="examples.html#divert-example" title="11.1.20. Divert">Section 11.1.20, “Divert”</a> for a full working
+        example showing you how to configure and use diverts.</p><p>Let's take a look at some divert examples:</p><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title"><a id="d0e9869"/>35.1. Exclusive Divert</h2></div></div></div><p>Let's take a look at an exclusive divert. An exclusive divert diverts all matching
+            messages that are routed to the old address to the new address. Matching messages do not
+            get routed to the old address.</p><p>Here's some example xml configuration for an exclusive divert, it's taken from the
+            divert example:</p><pre xmlns="" xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" class="">
+&lt;divert name="prices-divert"&gt;
+   &lt;address&gt;jms.topic.priceUpdates&lt;/address&gt;
+   &lt;forwarding-address&gt;jms.queue.priceForwarding&lt;/forwarding-address&gt;
+   &lt;filter string="office='New York'"/&gt;
+   &lt;transformer-class-name&gt;
+      org.hornetq.jms.example.AddForwardingTimeTransformer
+   &lt;/transformer-class-name&gt;
+   &lt;exclusive&gt;true&lt;/exclusive&gt;
+&lt;/divert&gt;</pre><p>We define a divert called '<code class="literal">prices-divert</code>' that will divert any
+            messages sent to the address '<code class="literal">jms.topic.priceUpdates</code>' (this
+            corresponds to any messages sent to a JMS Topic called '<code class="literal">priceUpdates</code>') to another local address '<code class="literal">jms.queue.priceForwarding</code>' (this corresponds to a local JMS queue called
+                '<code class="literal">priceForwarding</code>'</p><p>We also specify a message filter string so only messages with the message property
+                <code class="literal">office</code> with value <code class="literal">New York</code> will get diverted,
+            all other messages will continue to be routed to the normal address. The filter string
+            is optional, if not specified then all messages will be considered matched.</p><p>In this example a transformer class is specified. Again this is optional, and if
+            specified the transformer will be executed for each matching message. This allows you to
+            change the messages body or properties before it is diverted. In this example the
+            transformer simply adds a header that records the time the divert happened.</p><p>This example is actually diverting messages to a local store and forward queue, which
+            is configured with a bridge which forwards the message to an address on another HornetQ
+            server. Please see the example for more details.</p></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title"><a id="d0e9907"/>35.2. Non-exclusive Divert</h2></div></div></div><p>Now we'll take a look at a non-exclusive divert. Non exclusive diverts are the same as
+            exclusive diverts, but they only forward a <span class="emphasis"><em>copy</em></span> of the message to
+            the new address. The original message continues to the old address</p><p>You can therefore think of non-exclusive diverts as <span class="emphasis"><em>splitting</em></span> a
+            message flow.</p><p>Non exclusive diverts can be configured in the same way as exclusive diverts with an
+            optional filter and transformer, here's an example non-exclusive divert, again from the
+            divert example:</p><pre xmlns="" xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" class="">
+&lt;divert name="order-divert"&gt;
+    &lt;address&gt;jms.queue.orders&lt;/address&gt;
+    &lt;forwarding-address&gt;jms.topic.spyTopic&lt;/forwarding-address&gt;
+    &lt;exclusive&gt;false&lt;/exclusive&gt;
+&lt;/divert&gt;</pre><p>The above divert example takes a copy of every message sent to the address '<code class="literal">jms.queue.orders</code>' (Which corresponds to a JMS Queue called '<code class="literal">orders</code>') and sends it to a local address called '<code class="literal">jms.topic.SpyTopic</code>' (which corresponds to a JMS Topic called '<code class="literal">SpyTopic</code>').</p></div></div><ul class="docnav"><li class="previous"><a accesskey="p" href="client-reconnection.html"><strong>Prev</strong>Chapter 34. Client Reconnection and Session Reatt...</a></li><li class="up"><a accesskey="u" href="#"><strong>Top of page</strong></a></li><li class="home"><a accesskey="h" href="index.html"><strong>Front page</strong></a></li><li class="next"><a accesskey="n" href="core-bridges.html"><strong>Next</strong>Chapter 36. Core Bridges</a></li></ul></body></html>

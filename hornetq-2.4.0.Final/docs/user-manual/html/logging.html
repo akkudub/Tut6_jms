@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><title xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory">Chapter 42. Logging</title><link rel="stylesheet" href="css/jbossorg.css" type="text/css"/><meta xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" name="generator" content="DocBook XSL Stylesheets V1.74.0"/><meta xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" http-equiv="Content-Type" content="text/html; charset=UTF-8"/><link rel="home" href="index.html" title="HornetQ User Manual"/><link rel="up" href="index.html" title="HornetQ User Manual"/><link rel="prev" href="thread-pooling.html" title="Chapter 41. Thread management"/><link rel="next" href="rest.html" title="Chapter 43. REST Interface"/></head><body><p id="title"><a href="http://www.jboss.org" class="site_href"><strong>JBoss.org</strong></a><a href="http://docs.jboss.org/" class="doc_href"><strong>Community Documentation</strong></a></p><ul class="docnav"><li class="previous"><a accesskey="p" href="thread-pooling.html"><strong>Prev</strong></a></li><li class="next"><a accesskey="n" href="rest.html"><strong>Next</strong></a></li></ul><div class="chapter" lang="en"><div class="titlepage"><div><div><h2 class="title"><a id="logging"/>Chapter 42. Logging</h2></div></div></div><div class="toc"><dl><dt><span class="section"><a href="logging.html#d0e12252">42.1. Logging in a client or with an Embedded server</a></span></dt><dt><span class="section"><a href="logging.html#d0e12290">42.2. Logging With The JBoss Application Server</a></span></dt></dl></div><p>HornetQ uses the JBoss Logging framework to do its logging and is configurable via the <code class="literal">logging.properties</code>
+       file found in the configuration directories. This is configured by Default to log to both the console and to a file.</p><p>There are 6 loggers available which are as follows:</p><div class="table"><a id="d0e12204"/><p class="title"><b>Table 42.1. Global Configuration Properties</b></p><div class="table-contents"><table summary="Global Configuration Properties" border="1"><colgroup><col/><col/></colgroup><thead><tr><th>Logger</th><th>Logger Description</th></tr></thead><tbody><tr><td>org.jboss.logging</td><td>Logs any calls not handled by the HornetQ loggers</td></tr><tr><td>org.hornetq.core.server</td><td>Logs the core server</td></tr><tr><td>org.hornetq.utils</td><td>Logs utility calls</td></tr><tr><td>org.hornetq.journal</td><td>Logs Journal calls</td></tr><tr><td>org.hornetq.jms</td><td>Logs JMS calls</td></tr><tr><td>org.hornetq.integration.bootstrap</td><td>Logs bootstrap calls</td></tr></tbody></table><p>you can configure the levels on these loggers independently in the appropriate <code class="literal">logging.properties</code>
+        file</p></div></div><br class="table-break"/><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title"><a id="d0e12252"/>42.1. Logging in a client or with an Embedded server</h2></div></div></div><p>
+         Firstly, if you want to enable logging on the client side you need to include the jboss logging jars in your library.
+         If you are using the distribution make sure the jnp-client.jar is included or if you are using maven add the following
+         dependencies.
+         </p><pre xmlns="" xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" class="">
+&lt;dependency&gt;
+&lt;groupId&gt;org.jboss.naming&lt;/groupId&gt;
+&lt;artifactId&gt;jnp-client&lt;/artifactId&gt;
+&lt;version&gt;5.0.5.Final&lt;/version&gt;
+   &lt;exclusions&gt;
+      &lt;exclusion&gt;
+         &lt;groupId&gt;org.jboss.logging&lt;/groupId&gt;
+         &lt;artifactId&gt;jboss-logging-spi&lt;/artifactId&gt;
+      &lt;/exclusion&gt;
+   &lt;/exclusions&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+   &lt;groupId&gt;org.jboss.logmanager&lt;/groupId&gt;
+   &lt;artifactId&gt;jboss-logmanager&lt;/artifactId&gt;
+   &lt;version&gt;1.3.1.Final&lt;/version&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+   &lt;groupId&gt;org.hornetq&lt;/groupId&gt;
+   &lt;artifactId&gt;hornetq-core-client&lt;/artifactId&gt;
+   &lt;version&gt;2.3.0.Final&lt;/version&gt;
+&lt;/dependency&gt;</pre><p>
+         The first dependency <code class="literal">jnp-client</code> is not actually needed for logging, however this is needed for
+         using JNDI and imports a previous version JBoss logging which needs to be excluded
+      </p><p>
+         There are 2 properties you need to set when starting your java program, the first is to set the Log Manager to use
+         the JBoss Log Manager, this is done by setting the <code class="literal">-Djava.util.logging.manager</code> property i.e.
+         <code class="literal">-Djava.util.logging.manager=org.jboss.logmanager.LogManager</code>
+      </p><p>
+         The second is to set the location of the logging.properties file to use, this is done via the <code class="literal">-Dlogging.configuration</code>
+         for instance <code class="literal">-Dlogging.configuration=file:///home/user/projects/myProject/logging.properties</code>.
+         </p><div xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" class="note"><h2>Note</h2>The value for this needs to be valid URL</div><p>
+      </p><p>
+         The following is a typical <code class="literal">logging.properties for a client</code>
+         </p><pre xmlns="" xmlns:rf="java:org.jboss.highlight.XhtmlRendererFactory" class="">
+# Root logger option
+loggers=org.jboss.logging,org.hornetq.core.server,org.hornetq.utils,org.hornetq.journal,org.hornetq.jms,org.hornetq.ra
+
+# Root logger level
+logger.level=INFO
+# HornetQ logger levels
+logger.org.hornetq.core.server.level=INFO
+logger.org.hornetq.utils.level=INFO
+logger.org.hornetq.jms.level=DEBUG
+
+# Root logger handlers
+logger.handlers=FILE,CONSOLE
+
+# Console handler configuration
+handler.CONSOLE=org.jboss.logmanager.handlers.ConsoleHandler
+handler.CONSOLE.properties=autoFlush
+handler.CONSOLE.level=FINE
+handler.CONSOLE.autoFlush=true
+handler.CONSOLE.formatter=PATTERN
+
+# File handler configuration
+handler.FILE=org.jboss.logmanager.handlers.FileHandler
+handler.FILE.level=FINE
+handler.FILE.properties=autoFlush,fileName
+handler.FILE.autoFlush=true
+handler.FILE.fileName=hornetq.log
+handler.FILE.formatter=PATTERN
+
+# Formatter pattern configuration
+formatter.PATTERN=org.jboss.logmanager.formatters.PatternFormatter
+formatter.PATTERN.properties=pattern
+formatter.PATTERN.pattern=%d{HH:mm:ss,SSS} %-5p [%c] %s%E%n</pre><p>
+      </p></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title"><a id="d0e12290"/>42.2. Logging With The JBoss Application Server</h2></div></div></div><p>When HornetQ is deployed within the JBoss Application Server version 7.x or above then
+            it will still use JBoss Logging, refer to the AS7 documentation on how to configure AS7 logging.</p></div></div><ul class="docnav"><li class="previous"><a accesskey="p" href="thread-pooling.html"><strong>Prev</strong>Chapter 41. Thread management</a></li><li class="up"><a accesskey="u" href="#"><strong>Top of page</strong></a></li><li class="home"><a accesskey="h" href="index.html"><strong>Front page</strong></a></li><li class="next"><a accesskey="n" href="rest.html"><strong>Next</strong>Chapter 43. REST Interface</a></li></ul></body></html>
